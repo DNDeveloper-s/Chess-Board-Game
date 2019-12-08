@@ -1,0 +1,662 @@
+/*
+0 - 600px:      Phone
+600 - 900px:    Tablet portrait
+900 - 1200px:   Tablet landscape
+[1200 - 1800] is where our normal styles apply
+1800px + :      Big desktop
+
+$breakpoint arguement choices:
+- phone
+- tab-port
+- tab-land
+- big-desktop
+
+ORDER: Base + typography > general layout + grid > page layout > components
+
+1em = 16px
+*/
+@keyframes horizontal {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 100%;
+  }
+}
+@keyframes vertical {
+  0% {
+    height: 0;
+  }
+  100% {
+    height: 100%;
+  }
+}
+/*
+0 - 600px:      Phone
+600 - 900px:    Tablet portrait
+900 - 1200px:   Tablet landscape
+[1200 - 1800] is where our normal styles apply
+1800px + :      Big desktop
+
+$breakpoint arguement choices:
+- phone
+- tab-port
+- tab-land
+- big-desktop
+
+ORDER: Base + typography > general layout + grid > page layout > components
+
+1em = 16px
+*/
+* {
+  margin: 0;
+  padding: 0;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 100px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+body {
+  overflow-x: hidden;
+  font-family: "sans-serif";
+  user-select: none;
+  background-image: url("../images/chess.jpg");
+}
+
+.container {
+  position: relative;
+  width: 100vh;
+  height: 100vh;
+  border: 4px solid #c29467;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0px 0px 30px black;
+  background: #f1f1f1;
+  z-index: 5;
+}
+
+.row {
+  display: flex;
+}
+
+.pawn.none {
+  opacity: 0;
+}
+
+.pawn.abs {
+  pointer-events: none;
+  z-index: 12;
+}
+
+.box {
+  width: calc(99.2vh / 8);
+  height: calc(99.2vh / 8);
+  box-sizing: border-box;
+  background: rgba(194, 176, 165, 0.73);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.bgBlack {
+  background: #c29467;
+}
+
+.pieces {
+  border: 1px solid red;
+  background: lightgrey;
+  width: 90px;
+  height: 90px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  border-radius: 50%;
+}
+
+.cards__item {
+  transition: 0.3s;
+}
+
+.cards__item.cum {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  background: radial-gradient(circle, #3fbefb 0%, #464afc 100%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.box.thisOne {
+  position: relative;
+}
+.box.thisOne::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 0;
+  overflow: hidden;
+  width: 2px;
+  background: #dd7f14;
+  box-shadow: 12px 0 30px 12px #dd7f14;
+  animation: vertical 0.1s cubic-bezier(1, 0.17, 0.09, 0.92) forwards;
+  animation-delay: 0.3s;
+}
+.box.thisOne::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 0;
+  width: 2px;
+  background: #dd7f14;
+  box-shadow: -12px 0 30px 12px #dd7f14;
+  animation: vertical 0.1s cubic-bezier(1, 0.17, 0.09, 0.92) forwards;
+  animation-delay: 0.1s;
+}
+.box.thisOne > .topLine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #dd7f14;
+  box-shadow: 0 12px 30px 12px #dd7f14;
+  animation: horizontal 0.1s cubic-bezier(1, 0.17, 0.09, 0.92) forwards;
+  animation-delay: 0s;
+}
+.box.thisOne > .bottomLine {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 0;
+  height: 2px;
+  background: #dd7f14;
+  box-shadow: 0 -12px 30px 12px #dd7f14;
+  animation: horizontal 0.1s cubic-bezier(1, 0.17, 0.09, 0.92) forwards;
+  animation-delay: 0.2s;
+}
+
+.box.cumOwn {
+  z-index: 1;
+  box-sizing: border-box;
+  box-shadow: 0 0 40px #50bfe6 inset;
+}
+
+.box.cumOver {
+  z-index: 1;
+  box-sizing: border-box;
+  box-shadow: 0 0 10px #ff5e4c;
+  background: radial-gradient(circle, #fcde46 0%, #fb3f3f 100%);
+}
+
+img {
+  position: absolute;
+}
+
+.abs {
+  transition: 300ms;
+}
+
+.queenMove.abs {
+  position: absolute;
+  top: 733px;
+  left: 613px;
+  z-index: 11;
+}
+
+.kingMove.abs {
+  position: absolute;
+  z-index: 11;
+}
+
+.whitepawnMove-1.abs {
+  position: absolute;
+  top: 494px;
+  left: 374px;
+  z-index: 11;
+}
+
+.blackpawnMove-6.abs {
+  position: absolute;
+  top: 373px;
+  left: 254px;
+  z-index: 11;
+}
+
+.rookMove.abs {
+  position: absolute;
+  top: 17px;
+  left: 618px;
+  z-index: 11;
+}
+
+.knightMove.abs {
+  position: absolute;
+  top: 13px;
+  left: 373px;
+  z-index: 11;
+}
+
+.bishopMove.abs {
+  position: absolute;
+  top: 134px;
+  left: 493px;
+  z-index: 11;
+}
+
+.opNone {
+  opacity: 0;
+  z-index: 12;
+  width: 95px;
+  height: 95px;
+}
+
+.checked-black {
+  position: absolute;
+  top: 0;
+  right: calc(100% + 4px);
+  margin: 0;
+  width: 240px;
+  height: 100%;
+  box-sizing: content-box;
+  box-shadow: 0 0 20px black;
+  z-index: -1;
+  display: flex;
+}
+
+.checked-black::before {
+  content: "";
+  position: absolute;
+  width: 240px;
+  height: 100%;
+  border: 4px solid lightgrey;
+  background: rgba(82, 82, 82, 0.19);
+  box-shadow: inset 0 0 2000px rgba(255, 255, 255, 0.5);
+  filter: blur(10px);
+  z-index: -1;
+}
+
+.checked-white {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 4px);
+  margin: 0;
+  width: 240px;
+  height: 100%;
+  box-sizing: content-box;
+  box-shadow: 0px 0px 20px black;
+  z-index: -1;
+  display: flex;
+}
+
+.checked-white::before {
+  content: "";
+  position: absolute;
+  width: 240px;
+  height: 100%;
+  border: 4px solid lightgrey;
+  background: rgba(82, 82, 82, 0.19);
+  box-shadow: inset 0 0 2000px rgba(255, 255, 255, 0.5);
+  filter: blur(10px);
+  z-index: -1;
+}
+
+.checkBox {
+  width: 120px;
+  height: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+}
+
+.g {
+  background: #00ff01;
+}
+
+.b {
+  background: #41a2ff;
+}
+
+.r {
+  background: #fe0000;
+}
+
+.y {
+  background: #ffff00;
+}
+
+/*
+0 - 600px:      Phone
+600 - 900px:    Tablet portrait
+900 - 1200px:   Tablet landscape
+[1200 - 1800] is where our normal styles apply
+1800px + :      Big desktop
+
+$breakpoint arguement choices:
+- phone
+- tab-port
+- tab-land
+- big-desktop
+
+ORDER: Base + typography > general layout + grid > page layout > components
+
+1em = 16px
+*/
+* {
+  margin: 0;
+  padding: 0;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 100px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+body {
+  overflow-x: hidden;
+  font-family: "sans-serif";
+  user-select: none;
+  background-image: url("../images/chess.jpg");
+}
+
+.container {
+  position: relative;
+  width: 100vh;
+  height: 100vh;
+  border: 4px solid #c29467;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0px 0px 30px black;
+  background: #f1f1f1;
+  z-index: 5;
+}
+
+.row {
+  display: flex;
+}
+
+.pawn.none {
+  opacity: 0;
+}
+
+.pawn.abs {
+  pointer-events: none;
+  z-index: 12;
+}
+
+.box {
+  width: calc(99.2vh / 8);
+  height: calc(99.2vh / 8);
+  box-sizing: border-box;
+  background: rgba(194, 176, 165, 0.73);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.bgBlack {
+  background: #c29467;
+}
+
+.pieces {
+  border: 1px solid red;
+  background: lightgrey;
+  width: 90px;
+  height: 90px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  border-radius: 50%;
+}
+
+.cards__item {
+  transition: 0.3s;
+}
+
+.cards__item.cum {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  background: radial-gradient(circle, #3fbefb 0%, #464afc 100%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.box.thisOne {
+  position: relative;
+}
+.box.thisOne::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 0;
+  overflow: hidden;
+  width: 2px;
+  background: #dd7f14;
+  box-shadow: 12px 0 30px 12px #dd7f14;
+  animation: vertical 0.1s cubic-bezier(1, 0.17, 0.09, 0.92) forwards;
+  animation-delay: 0.3s;
+}
+.box.thisOne::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 0;
+  width: 2px;
+  background: #dd7f14;
+  box-shadow: -12px 0 30px 12px #dd7f14;
+  animation: vertical 0.1s cubic-bezier(1, 0.17, 0.09, 0.92) forwards;
+  animation-delay: 0.1s;
+}
+.box.thisOne > .topLine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #dd7f14;
+  box-shadow: 0 12px 30px 12px #dd7f14;
+  animation: horizontal 0.1s cubic-bezier(1, 0.17, 0.09, 0.92) forwards;
+  animation-delay: 0s;
+}
+.box.thisOne > .bottomLine {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 0;
+  height: 2px;
+  background: #dd7f14;
+  box-shadow: 0 -12px 30px 12px #dd7f14;
+  animation: horizontal 0.1s cubic-bezier(1, 0.17, 0.09, 0.92) forwards;
+  animation-delay: 0.2s;
+}
+
+.box.cumOwn {
+  z-index: 1;
+  box-sizing: border-box;
+  box-shadow: 0 0 40px #50bfe6 inset;
+}
+
+.box.cumOver {
+  z-index: 1;
+  box-sizing: border-box;
+  box-shadow: 0 0 10px #ff5e4c;
+  background: radial-gradient(circle, #fcde46 0%, #fb3f3f 100%);
+}
+
+img {
+  position: absolute;
+}
+
+.abs {
+  transition: 300ms;
+}
+
+.queenMove.abs {
+  position: absolute;
+  top: 733px;
+  left: 613px;
+  z-index: 11;
+}
+
+.kingMove.abs {
+  position: absolute;
+  z-index: 11;
+}
+
+.whitepawnMove-1.abs {
+  position: absolute;
+  top: 494px;
+  left: 374px;
+  z-index: 11;
+}
+
+.blackpawnMove-6.abs {
+  position: absolute;
+  top: 373px;
+  left: 254px;
+  z-index: 11;
+}
+
+.rookMove.abs {
+  position: absolute;
+  top: 17px;
+  left: 618px;
+  z-index: 11;
+}
+
+.knightMove.abs {
+  position: absolute;
+  top: 13px;
+  left: 373px;
+  z-index: 11;
+}
+
+.bishopMove.abs {
+  position: absolute;
+  top: 134px;
+  left: 493px;
+  z-index: 11;
+}
+
+.opNone {
+  opacity: 0;
+  z-index: 12;
+  width: 95px;
+  height: 95px;
+}
+
+.checked-black {
+  position: absolute;
+  top: 0;
+  right: calc(100% + 4px);
+  margin: 0;
+  width: 240px;
+  height: 100%;
+  box-sizing: content-box;
+  box-shadow: 0 0 20px black;
+  z-index: -1;
+  display: flex;
+}
+
+.checked-black::before {
+  content: "";
+  position: absolute;
+  width: 240px;
+  height: 100%;
+  border: 4px solid lightgrey;
+  background: rgba(82, 82, 82, 0.19);
+  box-shadow: inset 0 0 2000px rgba(255, 255, 255, 0.5);
+  filter: blur(10px);
+  z-index: -1;
+}
+
+.checked-white {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 4px);
+  margin: 0;
+  width: 240px;
+  height: 100%;
+  box-sizing: content-box;
+  box-shadow: 0px 0px 20px black;
+  z-index: -1;
+  display: flex;
+}
+
+.checked-white::before {
+  content: "";
+  position: absolute;
+  width: 240px;
+  height: 100%;
+  border: 4px solid lightgrey;
+  background: rgba(82, 82, 82, 0.19);
+  box-shadow: inset 0 0 2000px rgba(255, 255, 255, 0.5);
+  filter: blur(10px);
+  z-index: -1;
+}
+
+.checkBox {
+  width: 120px;
+  height: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+}
+
+/*# sourceMappingURL=main.css.map */

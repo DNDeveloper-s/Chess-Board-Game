@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="5930ffb3-bbb5-4d44-92e1-050ddd03ec6e" name="Default Changelist" comment="" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Sass File" />
+        <option value="SCSS File" />
+        <option value="JavaScript File" />
+      </list>
+    </option>
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/src/assets/js/app.js" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="ProjectId" id="1UKczpvBp1oFf5JdvEJcWqF8qT1" />
+  <component name="PropertiesComponent">
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="list.type.of.created.stylesheet" value="SCSS" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="settings.editor.selected.configurable" value="watcher.settings" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="E:\2019\newOne\css" />
+      <recent name="E:\2019\New folder\src\assets" />
+      <recent name="E:\2019\New folder\src" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="5930ffb3-bbb5-4d44-92e1-050ddd03ec6e" name="Default Changelist" comment="" />
+      <created>1575108993383</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1575108993383</updated>
+      <workItem from="1575108997786" duration="357000" />
+      <workItem from="1575109376076" duration="7801000" />
+      <workItem from="1575171805899" duration="6214000" />
+      <workItem from="1575181188125" duration="1533000" />
+      <workItem from="1575198302275" duration="600000" />
+      <workItem from="1575203965130" duration="7286000" />
+      <workItem from="1575258007896" duration="11432000" />
+      <workItem from="1575379709248" duration="572000" />
+      <workItem from="1575621078450" duration="15414000" />
+      <workItem from="1575697850844" duration="11118000" />
+      <workItem from="1575721602542" duration="356000" />
+      <workItem from="1575726117133" duration="12671000" />
+      <workItem from="1575776595907" duration="821000" />
+      <workItem from="1575785322016" duration="3081000" />
+      <workItem from="1575788533644" duration="9259000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+</project>

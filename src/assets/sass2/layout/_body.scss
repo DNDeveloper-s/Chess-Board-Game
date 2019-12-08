@@ -1,0 +1,23 @@
+.cards {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  zoom: 0.8;
+  margin: 0 auto;
+
+  &__item {
+    border: 1px solid black;
+    width: 240px;
+    height: 240px;
+  }
+}
+
+.pawn {
+  position: absolute;
+  width: 130px;
+  height: 130px;
+  transition: 200ms;
+  transform: translate(-50%, -50%);
+}

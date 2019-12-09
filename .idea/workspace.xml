@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="5930ffb3-bbb5-4d44-92e1-050ddd03ec6e" name="Default Changelist" comment="" />
+    <list default="true" id="5930ffb3-bbb5-4d44-92e1-050ddd03ec6e" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/assets/js/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/js/app.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/assets/sass/main.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/sass/main.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/assets/sass/main.css.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/sass/main.css.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/assets/sass/pages/_home.scss" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/sass/pages/_home.scss" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -17,11 +24,15 @@
       </list>
     </option>
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/src/assets/js/app.js" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="ProjectId" id="1UKczpvBp1oFf5JdvEJcWqF8qT1" />
   <component name="PropertiesComponent">
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="list.type.of.created.stylesheet" value="SCSS" />
     <property name="nodejs_package_manager_path" value="npm" />
@@ -71,10 +82,27 @@
       <workItem from="1575776595907" duration="821000" />
       <workItem from="1575785322016" duration="3081000" />
       <workItem from="1575788533644" duration="9259000" />
+      <workItem from="1575817328236" duration="8046000" />
+      <workItem from="1575858342250" duration="1228000" />
+      <workItem from="1575862861782" duration="6878000" />
+      <workItem from="1575892112252" duration="14107000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>

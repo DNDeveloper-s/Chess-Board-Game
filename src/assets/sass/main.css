@@ -161,8 +161,8 @@ body {
   height: 0;
   overflow: hidden;
   width: 2px;
-  background: #dd7f14;
-  box-shadow: 12px 0 30px 12px #dd7f14;
+  background: #464afc;
+  box-shadow: 12px 0 30px 12px #464afc;
   animation: vertical 0.1s cubic-bezier(1, 0.17, 0.09, 0.92) forwards;
   animation-delay: 0.3s;
 }
@@ -173,8 +173,8 @@ body {
   right: 0;
   height: 0;
   width: 2px;
-  background: #dd7f14;
-  box-shadow: -12px 0 30px 12px #dd7f14;
+  background: #464afc;
+  box-shadow: -12px 0 30px 12px #464afc;
   animation: vertical 0.1s cubic-bezier(1, 0.17, 0.09, 0.92) forwards;
   animation-delay: 0.1s;
 }
@@ -184,8 +184,8 @@ body {
   left: 0;
   width: 0;
   height: 2px;
-  background: #dd7f14;
-  box-shadow: 0 12px 30px 12px #dd7f14;
+  background: #464afc;
+  box-shadow: 0 12px 30px 12px #464afc;
   animation: horizontal 0.1s cubic-bezier(1, 0.17, 0.09, 0.92) forwards;
   animation-delay: 0s;
 }
@@ -195,8 +195,8 @@ body {
   right: 0;
   width: 0;
   height: 2px;
-  background: #dd7f14;
-  box-shadow: 0 -12px 30px 12px #dd7f14;
+  background: #464afc;
+  box-shadow: 0 -12px 30px 12px #464afc;
   animation: horizontal 0.1s cubic-bezier(1, 0.17, 0.09, 0.92) forwards;
   animation-delay: 0.2s;
 }
@@ -483,8 +483,8 @@ body {
   height: 0;
   overflow: hidden;
   width: 2px;
-  background: #dd7f14;
-  box-shadow: 12px 0 30px 12px #dd7f14;
+  background: #464afc;
+  box-shadow: 12px 0 30px 12px #464afc;
   animation: vertical 0.1s cubic-bezier(1, 0.17, 0.09, 0.92) forwards;
   animation-delay: 0.3s;
 }
@@ -495,8 +495,8 @@ body {
   right: 0;
   height: 0;
   width: 2px;
-  background: #dd7f14;
-  box-shadow: -12px 0 30px 12px #dd7f14;
+  background: #464afc;
+  box-shadow: -12px 0 30px 12px #464afc;
   animation: vertical 0.1s cubic-bezier(1, 0.17, 0.09, 0.92) forwards;
   animation-delay: 0.1s;
 }
@@ -506,8 +506,8 @@ body {
   left: 0;
   width: 0;
   height: 2px;
-  background: #dd7f14;
-  box-shadow: 0 12px 30px 12px #dd7f14;
+  background: #464afc;
+  box-shadow: 0 12px 30px 12px #464afc;
   animation: horizontal 0.1s cubic-bezier(1, 0.17, 0.09, 0.92) forwards;
   animation-delay: 0s;
 }
@@ -517,8 +517,8 @@ body {
   right: 0;
   width: 0;
   height: 2px;
-  background: #dd7f14;
-  box-shadow: 0 -12px 30px 12px #dd7f14;
+  background: #464afc;
+  box-shadow: 0 -12px 30px 12px #464afc;
   animation: horizontal 0.1s cubic-bezier(1, 0.17, 0.09, 0.92) forwards;
   animation-delay: 0.2s;
 }

@@ -2,10 +2,22 @@ let container = document.querySelector('.container');
 
 let pushToUITimer,
     timerArray = [],
+    mergedPredictedPlace = [],
     trayCount = {
         whitePlayer: 1,
         blackPlayer: 1
     };
+
+class Places {
+    info = {
+        rook: [[], []],
+        knight: [[], []],
+        bishop: [[], []],
+        queen: [[]],
+        king: [[]],
+        ordPawn: [[], [], [], [], [], [], [], []]
+    }
+}
 
 class Player {
     info = {
@@ -26,14 +38,10 @@ class Player {
                 {row: null, col: null}
             ]
         },
-        predictedPlace: {
-            rook: [[], []],
-            knight: [[], []],
-            bishop: [[], []],
-            queen: [[]],
-            king: [[]],
-            ordPawn: [[], [], [], [], [], [], [], []]
-        },
+        predictedKingPlace: new Places().info,
+        predictedPlace: new Places().info,
+        allPossiblePlace: new Places().info,
+        pathKingArr: new Places().info,
         overPawns: {
             rook: [false, false],
             knight: [false, false],
@@ -59,6 +67,7 @@ let data = {
     white: function(a, b) {
         return {arithmeticOp: a+b, logicOp: a<=b}
     },
+    pathToKing: {white: [], black: []},
     curPawnPos: 7,
     validTarget: null,
     whitePlayer: new Player().info,
@@ -68,45 +77,33 @@ let data = {
             isCrossAllowed: true
         },
         rook: {
-            isPlusAllowed: true,
-            isCrossAllowed: false,
-            isKnight: false,
-            isOrdPawn: false
+            isPlusAllowed: true
         },
         queen: {
             isPlusAllowed: true,
-            isCrossAllowed: true,
-            isKnight: false,
-            isOrdPawn: false
+            isCrossAllowed: true
         },
         knight: {
-            isPlusAllowed: false,
-            isCrossAllowed: false,
-            isKnight: true,
-            isOrdPawn: false
+            isKnight: true
         },
         king: {
-            isPlusAllowed: false,
-            isCrossAllowed: false,
-            isKnight: false,
-            isOrdPawn: false
+            isKing: true
         },
         ordPawn: {
-            isPlusAllowed: false,
-            isCrossAllowed: false,
-            isKnight: false,
             isOrdPawn: true
         }
     }
 };
 
 allPawnOnBoard();
+possiblePlaceArr();
+pathKingArr();
 
 /********************************************* ********************************************
  *                                    EVENT HANDLERS                                     *
  ****************************************************************************************/
 
-document.addEventListener('click', function (e) {
+document.addEventListener('mouseup', function (e) {
 
     // TODO: check and get the Target
     let target = checkAndGetTarget(e);
@@ -130,8 +127,13 @@ document.addEventListener('click', function (e) {
         removeCumClass('cum');
         updateMovesHandler();
 
+        possiblePlaceArr();
+
+        pathKingArr();
+
     } else if(isItSameTarget(target)) {
-        console.log('How to do this in that manner');
+        removeCumClass('cum');
+        noActivePawn();
     } else {
         removeCumClass('cum');
         updateActivePawn(target);
@@ -141,9 +143,45 @@ document.addEventListener('click', function (e) {
             target.validTarget.parentElement.classList.add('thisOne');
         }
 
-        target.isTargetValid ? allowPosFn(target.targetType, target.pos, target.targetColor) : null;
+        if(data.activePawn && !isTargetOnPathToKing(data.activePawn.pos, data.activePawn.color)) {
+            target.isTargetValid ? allowPosFn(target.targetType, target.pos, target.targetColor, target.num, false) : null;
+        } else {
+            updatePathArrayToKing(target.pos, target.targetType, target.targetColor, target.num);
+            target.isTargetValid ? allowPosFn(target.targetType, target.pos, target.targetColor, target.num, true) : null;
+            // target.isTargetValid ? guardKingMoveFn(target.targetType, target.pos, target.targetColor) : null;
+        }
+
     }
 });
+
+function isTargetOnPathToKing(curPos, color) {
+    if(color !== null) {
+        for(let i = 0; i < data.pathToKing[color].length; i++) {
+            for(let j = 0; j < data.pathToKing[color][i].length; j++) {
+                if(curPos.row === data.pathToKing[color][i][j].row && curPos.col === data.pathToKing[color][i][j].col) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+function updatePathArrayToKing(curPos, pawnType, color, num) {
+    if(color !== null) {
+        data[`${color}Player`].pathKingArr[pawnType][num-1] = [];
+        let arr = data.pathToKing[color];
+        for(let i = 0; i < arr.length; i++) {
+            let arr1 = arr[i].slice(1, -1);
+            for(let j = 0; j < arr1.length; j++) {
+                if(curPos.row === arr1[j].row && curPos.col === arr1[j].col) {
+                    data[`${color}Player`].pathKingArr[pawnType][num-1].push(arr[i]);
+                    return;
+                }
+            }
+        }
+    }
+}
 
 /*****************************************************************************************
  *                                ACTUAL PAWN FUNCTIONS                                  *
@@ -170,7 +208,14 @@ function putAndPlacePawnInDOM(arr) {
     let prevPlace = document.querySelector(`.cards__item[data-id="${rowColToString(data.activePawn.pos)}"]`);
     let nextPlace = document.querySelector(`.cards__item[data-id="${arr[arr.length-1]}"]`);
     nextPlace.appendChild(prevPlace.childNodes[prevPlace.childNodes.length-1]);
-    prevPlace.removeChild(prevPlace.childNodes[prevPlace.childNodes.length-1]);
+
+    let prevPlaceChildren = prevPlace.childNodes[prevPlace.childNodes.length-1];
+
+    if(prevPlaceChildren.classList !== undefined) {
+        if(prevPlaceChildren.classList.contains('pawn')) {
+            prevPlace.removeChild(prevPlaceChildren);
+        }
+    }
 
     data[`${data.activePawn.color}Player`].pawnPlace[data.activePawn.type][data.activePawn.num-1] = {row: parseInt(nextPlace.dataset.row), col: parseInt(nextPlace.dataset.col)};
 }
@@ -184,9 +229,11 @@ function pathArray(tar) {
             prepArr = [];
             for(let k = 0; k < allowPos[i][j].length; k++) {
                 prepArr.push(allowPos[i][j][k]);
-                if(allowPos[i][j][k].row === tar.pos.row && allowPos[i][j][k].col === tar.pos.col){
-                    breakIt = true;
-                    break;
+                if(allowPos[i][j][k] !== null) {
+                    if(allowPos[i][j][k].row === tar.pos.row && allowPos[i][j][k].col === tar.pos.col){
+                        breakIt = true;
+                        break;
+                    }
                 }
             }
             if(breakIt)
@@ -205,7 +252,9 @@ function rowColToString(tar) {
 function loopForRowColString(arr) {
     let finalStringArr = [];
     for(let i = 0; i < arr.length; i++) {
-        finalStringArr.push(rowColToString(arr[i]));
+        if(arr[i] !== null) {
+            finalStringArr.push(rowColToString(arr[i]));
+        }
     }
     return finalStringArr;
 }
@@ -275,6 +324,7 @@ function noActivePawn() {
         allowPositions: [],
         color: null,
         type: null,
+        num: null,
         pos: {row: null, col: null},
     }
 }
@@ -284,27 +334,34 @@ function noActivePawn() {
  ****************************************************************************************/
 
 function ordPawnMovement(curPos, color) {
-    let top = [],
+    let loopCount = null,
+        top = [],
         topLeft = [],
-        loopCount = null,
-        topRight = [];
+        topRight = [],
+        topPossible = [],
+        topLeftPossible = [],
+        topRightPossible = [],
+        topLeftKingPredictions = [],
+        topRightKingPredictions = [];
 
     isOrdPawnOnStartPos(curPos, color) ? loopCount = 2 : loopCount = 1;
 
     for(let i = data[color](curPos.row, 1).arithmeticOp; data[color](i, data[color](curPos.row, loopCount).arithmeticOp).logicOp; i = data[color](i, 1).arithmeticOp) {
         if(i > 0 && i < 9) {
-            if(!isPlaceBusy({row: i, col: curPos.col}).busy)
+            if(!isPlaceBusy({row: i, col: curPos.col}).busy) {
+                topPossible.push({row: i, col: curPos.col});
                 top.push({row: i, col: curPos.col});
+            }
             else
                 break;
         }
     }
 
     let mulArr = [
-        {check: curPos.row+1 < 9 && curPos.col+1 < 9, place: {row: curPos.row+1, col: curPos.col+1}, pos: topLeft},
-        {check: curPos.row+1 < 9 && curPos.col-1 > 0, place: {row: curPos.row+1, col: curPos.col-1}, pos: topRight},
-        {check: curPos.row-1 > 0 && curPos.col-1 > 0, place: {row: curPos.row-1, col: curPos.col-1}, pos: topLeft},
-        {check: curPos.row-1 > 0 && curPos.col+1 < 9, place: {row: curPos.row-1, col: curPos.col+1}, pos: topRight}
+        {check: curPos.row+1 < 9 && curPos.col+1 < 9, place: {row: curPos.row+1, col: curPos.col+1}, pos: topLeft, kingPredictions: topLeftKingPredictions, possible: topLeftPossible},
+        {check: curPos.row+1 < 9 && curPos.col-1 > 0, place: {row: curPos.row+1, col: curPos.col-1}, pos: topRight, kingPredictions: topRightKingPredictions, possible: topRightPossible},
+        {check: curPos.row-1 > 0 && curPos.col-1 > 0, place: {row: curPos.row-1, col: curPos.col-1}, pos: topLeft, kingPredictions: topLeftKingPredictions, possible: topLeftPossible},
+        {check: curPos.row-1 > 0 && curPos.col+1 < 9, place: {row: curPos.row-1, col: curPos.col+1}, pos: topRight, kingPredictions: topRightKingPredictions, possible: topRightPossible}
     ];
 
     if(color === 'white') {
@@ -315,16 +372,593 @@ function ordPawnMovement(curPos, color) {
         ordPawnPush(mulArr[3], color);
     }
 
-    return {top, topLeft, topRight};
+    return [{top, topLeft, topRight}, {topLeftKingPredictions, topRightKingPredictions}, {topPossible, topLeftPossible, topRightPossible}];
 }
 
 function ordPawnPush(place, color) {
     if(place.check) {
         let placeToCheck = place.place;
+        place.kingPredictions.push(placeToCheck);
         if(isPlaceBusy(placeToCheck).busy) {
-            if(isPlaceBusy(placeToCheck).color !== color)
+            if(isPlaceBusy(placeToCheck).color !== color) {
+                place.possible.push(placeToCheck);
                 place.pos.push(placeToCheck);
+            }
         }
+    }
+}
+
+function plus(curPos, color) {
+    let rightPath = [],
+        leftPath = [],
+        topPath = [],
+        bottomPath = [],
+        rightPossible = [],
+        leftPossible = [],
+        topPossible = [],
+        bottomPossible = [],
+        rightKing = [],
+        leftKing = [],
+        topKing = [],
+        bottomKing = [];
+
+    // Towards the bottom
+    for(let i = curPos.row+1; i < 9; i++){
+        let curPlaceToCheck = {row: i, col: curPos.col};
+        if(isPlaceBusy(curPlaceToCheck).busy){
+            if(isPlaceBusy(curPlaceToCheck).color !== color) {
+                bottomPath.push(curPlaceToCheck);
+                break;
+            } else {
+                bottomKing.push(curPlaceToCheck);
+                break;
+            }
+        }
+        else{
+            bottomKing.push(curPlaceToCheck);
+            bottomPath.push(curPlaceToCheck);
+        }
+    }
+    for(let i = curPos.row+1; i < 9; i++){
+        let curPlaceToCheck = {row: i, col: curPos.col};
+        bottomPossible.push(curPlaceToCheck);
+    }
+
+    // Towards the top
+    for(let i = curPos.row-1; i > 0; i--){
+        let curPlaceToCheck = {row: i, col: curPos.col};
+        if(isPlaceBusy(curPlaceToCheck).busy){
+            if(isPlaceBusy(curPlaceToCheck).color !== color) {
+                topPath.push(curPlaceToCheck);
+                break;
+            } else {
+                topKing.push(curPlaceToCheck);
+                break;
+            }
+        }
+        else{
+            topKing.push(curPlaceToCheck);
+            topPath.push(curPlaceToCheck);
+        }
+    }
+    for(let i = curPos.row-1; i > 0; i--){
+        let curPlaceToCheck = {row: i, col: curPos.col};
+        topPossible.push(curPlaceToCheck);
+    }
+
+    // Towards the right
+    for(let i = curPos.col+1; i < 9; i++) {
+        let curPlaceToCheck = {row: curPos.row, col: i};
+        if(isPlaceBusy(curPlaceToCheck).busy){
+            if(isPlaceBusy(curPlaceToCheck).color !== color) {
+                rightPath.push(curPlaceToCheck);
+                break;
+            } else {
+                rightKing.push(curPlaceToCheck);
+                break;
+            }
+        }
+        else{
+            rightKing.push(curPlaceToCheck);
+            rightPath.push(curPlaceToCheck);
+        }
+    }
+    for(let i = curPos.col+1; i < 9; i++) {
+        let curPlaceToCheck = {row: curPos.row, col: i};
+        rightPossible.push(curPlaceToCheck);
+    }
+
+    // Towards the left
+    for(let i = curPos.col-1; i > 0; i--) {
+        let curPlaceToCheck = {row: curPos.row, col: i};
+        if(isPlaceBusy(curPlaceToCheck).busy){
+            if(isPlaceBusy(curPlaceToCheck).color !== color) {
+                leftPath.push(curPlaceToCheck);
+                break;
+            } else {
+                leftKing.push(curPlaceToCheck);
+                break;
+            }
+        }
+        else{
+            leftKing.push(curPlaceToCheck);
+            leftPath.push(curPlaceToCheck);
+        }
+    }
+    for(let i = curPos.col-1; i > 0; i--) {
+        let curPlaceToCheck = {row: curPos.row, col: i};
+        leftPossible.push(curPlaceToCheck);
+    }
+
+    // Towards the opposition area
+    // for(let i = curPos.row+1)
+
+    return [{topPath, bottomPath, rightPath, leftPath},
+        {topKing, bottomKing, rightKing, leftKing},
+        {topPossible, bottomPossible, rightPossible, leftPossible}];
+}
+
+function cross(curPos, color) {
+    let rightBottomPath = [],
+        leftBottomPath = [],
+        rightTopPath = [],
+        leftTopPath = [],
+        rightBottomPossible = [],
+        leftBottomPossible = [],
+        rightTopPossible = [],
+        leftTopPossible = [],
+        rightBottomKing = [],
+        leftBottomKing = [],
+        rightTopKing = [],
+        leftTopKing = [];
+
+    // Towards Right Bottom
+    for (let i = curPos.row+1, j = curPos.col+1; i < 9 && j < 9; i++, j++) {
+        let curPlaceToCheck = {row: i, col: j};
+        if(isPlaceBusy(curPlaceToCheck).busy){
+            if(isPlaceBusy(curPlaceToCheck).color !== color) {
+                rightBottomPath.push(curPlaceToCheck);
+                break;
+            }
+            else{
+                rightBottomKing.push(curPlaceToCheck);
+                break;
+            }
+        }
+        else{
+            rightBottomKing.push(curPlaceToCheck);
+            rightBottomPath.push(curPlaceToCheck);
+        }
+    }
+
+    for (let i = curPos.row+1, j = curPos.col+1; i < 9 && j < 9; i++, j++) {
+        let curPlaceToCheck = {row: i, col: j};
+        rightBottomPossible.push(curPlaceToCheck);
+    }
+
+    // Towards Right Top
+    for (let i = curPos.row-1, j = curPos.col-1; i > 0 && j > 0; i--, j--) {
+        let curPlaceToCheck = {row: i, col: j};
+        if(isPlaceBusy(curPlaceToCheck).busy) {
+            if(isPlaceBusy(curPlaceToCheck).color !== color) {
+                leftTopPath.push(curPlaceToCheck);
+                break;
+            } else{
+                leftTopKing.push(curPlaceToCheck);
+                break;
+            }
+        }
+        else{
+            leftTopKing.push(curPlaceToCheck);
+            leftTopPath.push(curPlaceToCheck);
+        }
+    }
+    for (let i = curPos.row-1, j = curPos.col-1; i > 0 && j > 0; i--, j--) {
+        let curPlaceToCheck = {row: i, col: j};
+        leftTopPossible.push(curPlaceToCheck);
+    }
+
+    // Towards Left Bottom
+    for (let i = curPos.row+1, j = curPos.col-1; i < 9 && j > 0; i++, j--) {
+        let curPlaceToCheck = {row: i, col: j};
+        if(isPlaceBusy(curPlaceToCheck).busy) {
+            if(isPlaceBusy(curPlaceToCheck).color !== color) {
+                leftBottomPath.push(curPlaceToCheck);
+                break;
+            } else{
+                leftBottomKing.push(curPlaceToCheck);
+                break;
+            }
+        }
+        else{
+            leftBottomKing.push(curPlaceToCheck);
+            leftBottomPath.push(curPlaceToCheck);
+        }
+    }
+    for (let i = curPos.row+1, j = curPos.col-1; i < 9 && j > 0; i++, j--) {
+        let curPlaceToCheck = {row: i, col: j};
+        leftBottomPossible.push(curPlaceToCheck);
+    }
+
+    // Towards Left Top
+    for (let i = curPos.row-1, j = curPos.col+1; i > 0 && j < 9; i--, j++) {
+        let curPlaceToCheck = {row: i, col: j};
+        if(isPlaceBusy(curPlaceToCheck).busy) {
+            if(isPlaceBusy(curPlaceToCheck).color !== color) {
+                rightTopPath.push(curPlaceToCheck);
+                break;
+            } else{
+                rightTopKing.push(curPlaceToCheck);
+                break;
+            }
+        }
+        else{
+            rightTopKing.push(curPlaceToCheck);
+            rightTopPath.push(curPlaceToCheck);
+        }
+    }
+    for (let i = curPos.row-1, j = curPos.col+1; i > 0 && j < 9; i--, j++) {
+        let curPlaceToCheck = {row: i, col: j};
+        rightTopPossible.push(curPlaceToCheck);
+    }
+
+    return [{rightBottomPath, rightTopPath, leftBottomPath, leftTopPath},
+        {rightBottomKing, rightTopKing, leftBottomKing, leftTopKing},
+        {rightBottomPossible, rightTopPossible, leftBottomPossible, leftTopPossible}];
+}
+
+function knight(curPos, color) {
+    let topLeft = [],
+        topRight = [],
+        rightTop = [],
+        rightBottom = [],
+        bottomRight = [],
+        bottomLeft = [],
+        leftBottom = [],
+        leftTop = [],
+        topLeftPossible = [],
+        topRightPossible = [],
+        rightTopPossible = [],
+        rightBottomPossible = [],
+        bottomRightPossible = [],
+        bottomLeftPossible = [],
+        leftBottomPossible = [],
+        leftTopPossible = [];
+
+    // TODO: Knight Overlap Checking for friendly or enemy pawns
+    let arr = [
+        {check: curPos.row-2 > 0 && curPos.col-1 > 0, actualPlace: {row: curPos.row-2, col: curPos.col-1}, color: color, arr: topLeft, possiblePlace: topLeftPossible},
+        {check: curPos.row-2 > 0 && curPos.col+1 < 9, actualPlace: {row: curPos.row-2, col: curPos.col+1}, color: color, arr: topRight, possiblePlace: topRightPossible},
+        {check: curPos.row-1 > 0 && curPos.col+2 < 9, actualPlace: {row: curPos.row-1, col: curPos.col+2}, color: color, arr: rightTop, possiblePlace: rightTopPossible},
+        {check: curPos.row+1 < 9 && curPos.col+2 < 9, actualPlace: {row: curPos.row+1, col: curPos.col+2}, color: color, arr: rightBottom, possiblePlace: rightBottomPossible},
+        {check: curPos.row+2 < 9 && curPos.col+1 < 9, actualPlace: {row: curPos.row+2, col: curPos.col+1}, color: color, arr: bottomRight, possiblePlace: bottomRightPossible},
+        {check: curPos.row+2 < 9 && curPos.col-1 > 0, actualPlace: {row: curPos.row+2, col: curPos.col-1}, color: color, arr: bottomLeft, possiblePlace: bottomLeftPossible},
+        {check: curPos.row+1 < 9 && curPos.col-2 > 0, actualPlace: {row: curPos.row+1, col: curPos.col-2}, color: color, arr: leftBottom, possiblePlace: leftBottomPossible},
+        {check: curPos.row-1 > 0 && curPos.col-2 > 0, actualPlace: {row: curPos.row-1, col: curPos.col-2}, color: color, arr: leftTop, possiblePlace: leftTopPossible}
+    ];
+    knightLooping(arr, knight);
+    return [
+        {topLeft, topRight, rightTop, rightBottom, bottomRight, bottomLeft, leftBottom, leftTop},
+        {topLeftPossible, topRightPossible, rightTopPossible, rightBottomPossible, bottomRightPossible, bottomLeftPossible, leftBottomPossible, leftTopPossible}
+    ];
+}
+
+function king(curPos, color) {
+    let topLeft = [],
+        top = [],
+        topRight = [],
+        right = [],
+        bottomRight = [],
+        bottom = [],
+        bottomLeft = [],
+        left = [],
+        topLeftKing = [],
+        topKing = [],
+        topRightKing = [],
+        rightKing = [],
+        bottomRightKing = [],
+        bottomKing = [],
+        bottomLeftKing = [],
+        leftKing = [];
+
+    let arr = [
+        {check: curPos.row-1 > 0 && curPos.col-1 > 0, place: {row: curPos.row-1, col: curPos.col-1}, arr: topLeft, kingPredictedArr: topLeftKing},
+        {check: curPos.row-1 > 0, place: {row: curPos.row-1, col: curPos.col}, arr: top, kingPredictedArr: topKing},
+        {check: curPos.row-1 > 0 && curPos.col+1 < 9, place: {row: curPos.row-1, col: curPos.col+1}, arr: topRight, kingPredictedArr: topRightKing},
+        {check: curPos.col+1 < 9, place: {row: curPos.row, col: curPos.col+1}, arr: right, kingPredictedArr: rightKing},
+        {check: curPos.row+1 < 9 && curPos.col+1 < 9, place: {row: curPos.row+1, col: curPos.col+1}, arr: bottomRight, kingPredictedArr: bottomRightKing},
+        {check: curPos.row+1 < 9, place: {row: curPos.row+1, col: curPos.col}, arr: bottom, kingPredictedArr: bottomKing},
+        {check: curPos.row+1 < 9 && curPos.col-1 > 0, place: {row: curPos.row+1, col: curPos.col-1}, arr: bottomLeft, kingPredictedArr: bottomLeftKing},
+        {check: curPos.col-1 > 0, place: {row: curPos.row, col: curPos.col-1}, arr: left, kingPredictedArr: leftKing},
+    ];
+
+    kingLooping(arr, color);
+    return [{topLeft, top, topRight, right, bottomRight, bottom, bottomLeft, left}, {topLeftKing, topKing, topRightKing, rightKing, bottomRightKing, bottomKing, bottomLeftKing, leftKing}];
+}
+
+function allPossiblePlaces(pawnType, curPos, color, num) {
+    data[`${color}Player`].allPossiblePlace[pawnType][num] = [];
+    if(data.allowedMoves[pawnType].isCrossAllowed){
+        let positions = cross(curPos, color);
+        data[`${color}Player`].allPossiblePlace[pawnType][num].push(...Object.values(positions[2]));
+    }
+    if(data.allowedMoves[pawnType].isPlusAllowed){
+        let positions = plus(curPos, color);
+        data[`${color}Player`].allPossiblePlace[pawnType][num].push(...Object.values(positions[2]));
+    }
+    if(data.allowedMoves[pawnType].isKnight) {
+        let positions = knight(curPos, color);
+        data[`${color}Player`].allPossiblePlace[pawnType][num].push(...Object.values(positions[1]));
+    }
+    if(data.allowedMoves[pawnType].isOrdPawn) {
+        let positions = ordPawnMovement(curPos, color);
+        data[`${color}Player`].allPossiblePlace[pawnType][num].push(...Object.values(positions[2]));
+    }
+    if(data.allowedMoves[pawnType].isKing) {
+        let positions = king(curPos, color);
+        data[`${color}Player`].allPossiblePlace[pawnType][num].push(...Object.values(positions[0]));
+    }
+}
+
+function loopPossiblePlaces(arr, color) {
+    for(let i = 0; i < arr.length; i++) {
+        for(let j = 0; j < arr[i].count; j++) {
+            allPossiblePlaces(arr[i].name, data[`${color}Player`].pawnPlace[arr[i].name][j], color, j);
+        }
+    }
+}
+
+function possiblePlaceArr() {
+    let arr = [
+        {name: 'rook', count: 2},
+        {name: 'bishop', count: 2},
+        {name: 'knight', count: 2},
+        {name: 'queen', count: 1},
+        {name: 'king', count: 1},
+        {name: 'ordPawn', count: 8}
+    ];
+
+    loopPossiblePlaces(arr, 'white');
+    loopPossiblePlaces(arr, 'black');
+}
+
+function getThePathForGuardingKing(pawnType, curPos, color, num) {
+    let place = data[`${color}Player`].allPossiblePlace[pawnType][num];
+    let kingPlace = data[`${opposeColor(color)}Player`].pawnPlace.king[0];
+    let desiredArr, breakIt = false;
+
+    for(let i = 0; i < place.length; i++) {
+        desiredArr = [];
+        desiredArr.push(curPos);
+        for(let j = 0; j < place[i].length; j++) {
+            desiredArr.push(place[i][j]);
+            if(place[i][j].row === kingPlace.row && place[i][j].col === kingPlace.col) {
+                breakIt = true;
+                filterPathToKing(desiredArr) ? data.pathToKing[opposeColor(color)].push(desiredArr) : -1;
+                break;
+            }
+        }
+        if(breakIt)
+            break;
+    }
+}
+
+function loopPathKing(arr, color) {
+    for(let i = 0; i < arr.length; i++) {
+        for(let j = 0; j < arr[i].count; j++) {
+            getThePathForGuardingKing(arr[i].name, data[`${color}Player`].pawnPlace[arr[i].name][j], color, j);
+        }
+    }
+}
+
+function pathKingArr() {
+    data.pathToKing.white = [];
+    data.pathToKing.black= [];
+    let arr = [
+        {name: 'rook', count: 2},
+        {name: 'bishop', count: 2},
+        {name: 'knight', count: 2},
+        {name: 'queen', count: 1},
+        {name: 'king', count: 1},
+        {name: 'ordPawn', count: 8}
+    ];
+
+    loopPathKing(arr, 'white');
+    loopPathKing(arr, 'black');
+}
+
+function filterPathToKing(arr) {
+    if(arr) {
+        let betweenArr = arr.slice(1, -1);
+        let count = 0;
+        for(let i = 0; i < betweenArr.length; i++) {
+            let place = document.querySelector(`.cards__item[data-row="${betweenArr[i].row}"][data-col="${betweenArr[i].col}"]`);
+            if(place.childNodes[place.childNodes.length-1].classList) {
+                if(place.childNodes[place.childNodes.length-1].classList.contains('pawn')) {
+                    count++;
+                }
+            }
+        }
+        return count <= 1;
+    }
+    return false;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+function kingLooping(arr, color) {
+    for(let i = 0; i < arr.length; i++) {
+        kingPush(arr[i], color);
+    }
+}
+
+function kingPush(place, color) {
+    if(place.check) {
+        let placeToCheck = place.place;
+        place.kingPredictedArr.push(placeToCheck);
+
+        if(isPlaceBusy(placeToCheck).busy) {
+            if(isPlaceBusy(placeToCheck).color !== color) {
+                if(!checkPredictedPlace(placeToCheck, color)) {
+                    place.arr.push(placeToCheck);
+                }
+            }
+        } else {
+            if(!checkPredictedPlace(placeToCheck, color)) {
+                place.arr.push(placeToCheck);
+            }
+        }
+    }
+}
+
+function opposeColor(color) {
+    let oppColor;
+    color === 'white' ? oppColor = 'black': oppColor = 'white';
+    return oppColor;
+}
+
+function checkPredictedPlace(pos, color) {
+    mergedPredictedPlace = [];
+    mergePredictedPlace(opposeColor(color));
+    for(let i = 0; i < mergedPredictedPlace.length; i++) {
+        if(pos.row === mergedPredictedPlace[i].row && pos.col === mergedPredictedPlace[i].col)
+            return true;
+    }
+    return false;
+}
+
+function mergePredictedPlace(color) {
+    let itemsArr = [
+        'rook',
+        'bishop',
+        'knight',
+        'queen',
+        'king',
+        'ordPawn'
+    ];
+
+    loopPredictedPlace(itemsArr, color);
+}
+
+function loopPredictedPlace(arr, color) {
+    for(let i = 0; i < arr.length; i++) {
+        mergePredictedPlaceHandler(color, arr[i]);
+    }
+}
+
+function mergePredictedPlaceHandler(color, type) {
+    let playerData = data[`${color}Player`].predictedKingPlace[type];
+    for(let i = 0; i < playerData.length; i++) {
+        for(let j = 0; j < playerData[i].length; j++) {
+            for(let k = 0; k < playerData[i][j].length; k++) {
+                if(playerData[i][j][k] !== undefined) {
+                    mergedPredictedPlace.push(playerData[i][j][k]);
+                }
+            }
+        }
+    }
+}
+
+function allowPosFn(pawnType, curPos, color, num, isItGuarding) {
+    let commonObj = {
+        isItGuarding: isItGuarding,
+        pawnType: pawnType,
+        curPos: curPos,
+        color: color,
+        num: num,
+    };
+    if(data.allowedMoves[pawnType].isCrossAllowed){
+        let positions = cross(curPos, color);
+        positionGuardedPawnForAllowPosFn({
+            ...commonObj,
+            positions: positions,
+            fn: preparedUICross
+        });
+    }
+    if(data.allowedMoves[pawnType].isPlusAllowed){
+        let positions = plus(curPos, color);
+        positionGuardedPawnForAllowPosFn({
+            ...commonObj,
+            positions: positions,
+            fn: preparedUIPlus
+        });
+    }
+    if(data.allowedMoves[pawnType].isKnight) {
+        let positions = knight(curPos, color);
+        positionGuardedPawnForAllowPosFn({
+            ...commonObj,
+            positions: positions,
+            fn: preparedUIKnight
+        });
+    }
+    if(data.allowedMoves[pawnType].isOrdPawn) {
+        let positions = ordPawnMovement(curPos, color);
+        positionGuardedPawnForAllowPosFn({
+            ...commonObj,
+            positions: positions,
+            fn: preparedOrdPawn
+        });
+    }
+    if(data.allowedMoves[pawnType].isKing) {
+        let positions = king(curPos, color);
+        data.activePawn.allowPositions.push(Object.values(positions[0]));
+        preparedKing(positions[0]);
+    }
+}
+
+function positionGuardedPawnForAllowPosFn(obj) {
+    if(obj.isItGuarding) {
+        let checkKingGuard = [],
+            pos = [];
+        checkKingGuard.push(...Object.values(obj.positions[0]));
+        let position = getKingGuardPositions(checkKingGuard, obj.pawnType, obj.curPos, obj.color, obj.num);
+        pos.push(position);
+        data.activePawn.allowPositions.push(pos);
+        preparedUIFromArray(position);
+    } else {
+        console.log(Object.values(obj.positions[0]));
+        data.activePawn.allowPositions.push(Object.values(obj.positions[0]));
+        obj.fn(obj.positions[0]);
+    }
+}
+
+function getKingGuardPositions(arr, pawnType, curPos, color, num) {
+    let posArr = [];
+    for(let i = 0; i < arr.length; i++) {
+        for(let j = 0; j < arr[i].length; j++) {
+            if(isItMatching(pawnType, curPos, color, num) !== null) {
+                posArr.push(isItMatching(pawnType, arr[i][j], color, num));
+            }
+        }
+    }
+    return posArr;
+}
+
+function isItMatching(pawnType, curPos, color, num) {
+    let pathKingArr = data[`${color}Player`].pathKingArr[pawnType][num-1];
+    for(let i = 0; i < pathKingArr.length; i++) {
+        for(let j = 0; j < pathKingArr[i].length; j++) {
+            if(curPos.row === pathKingArr[i][j].row && curPos.col === pathKingArr[i][j].col) {
+                return curPos;
+            }
+        }
+    }
+    return null;
+}
+
+function knightLooping(arr) {
+    for(let i = 0; i < arr.length; i++) {
+        knightPush(arr[i]);
     }
 }
 
@@ -336,210 +970,15 @@ function isOrdPawnOnStartPos(pos, color) {
     return false;
 }
 
-function plus(curPos, color) {
-    let rightPath = [],
-        leftPath = [],
-        topPath = [],
-        bottomPath = [];
-
-    // Towards the bottom
-    for(let i = curPos.row+1; i < 9; i++){
-        let curPlaceToCheck = {row: i, col: curPos.col};
-        if(isPlaceBusy(curPlaceToCheck).busy){
-            if(isPlaceBusy(curPlaceToCheck).color !== color) {
-                bottomPath.push(curPlaceToCheck);
-                break;
-            } else {
-                break;
-            }
-        }
-        else
-            bottomPath.push(curPlaceToCheck);
-    }
-
-    // Towards the top
-    for(let i = curPos.row-1; i > 0; i--){
-        let curPlaceToCheck = {row: i, col: curPos.col};
-        if(isPlaceBusy(curPlaceToCheck).busy){
-            if(isPlaceBusy(curPlaceToCheck).color !== color) {
-                topPath.push(curPlaceToCheck);
-                break;
-            } else {
-                break;
-            }
-        }
-        else
-            topPath.push(curPlaceToCheck);
-    }
-
-    // Towards the right
-    for(let i = curPos.col+1; i < 9; i++) {
-        let curPlaceToCheck = {row: curPos.row, col: i};
-        if(isPlaceBusy(curPlaceToCheck).busy){
-            if(isPlaceBusy(curPlaceToCheck).color !== color) {
-                rightPath.push(curPlaceToCheck);
-                break;
-            } else {
-                break;
-            }
-        }
-        else
-            rightPath.push(curPlaceToCheck);
-    }
-
-    // Towards the left
-    for(let i = curPos.col-1; i > 0; i--) {
-        let curPlaceToCheck = {row: curPos.row, col: i};
-        if(isPlaceBusy(curPlaceToCheck).busy){
-            if(isPlaceBusy(curPlaceToCheck).color !== color) {
-                leftPath.push(curPlaceToCheck);
-                break;
-            } else {
-                break;
-            }
-        }
-        else
-            leftPath.push(curPlaceToCheck);
-    }
-
-    // Towards the opposition area
-    // for(let i = curPos.row+1)
-
-    return {topPath, bottomPath, rightPath, leftPath};
-}
-
-function cross(curPos, color) {
-    let rightBottomPath = [],
-        leftBottomPath = [],
-        rightTopPath = [],
-        leftTopPath = [];
-    // Towards Right Bottom
-    for (let i = curPos.row+1, j = curPos.col+1; i < 9 && j < 9; i++, j++) {
-        let curPlaceToCheck = {row: i, col: j};
-
-        if(isPlaceBusy(curPlaceToCheck).busy){
-            if(isPlaceBusy(curPlaceToCheck).color !== color) {
-                rightBottomPath.push(curPlaceToCheck);
-                break;
-            }
-            else
-                break;
-        }
-        else
-            rightBottomPath.push(curPlaceToCheck);
-    }
-
-    // Towards Right Top
-    for (let i = curPos.row-1, j = curPos.col-1; i > 0 && j > 0; i--, j--) {
-        let curPlaceToCheck = {row: i, col: j};
-
-        if(isPlaceBusy(curPlaceToCheck).busy) {
-            if(isPlaceBusy(curPlaceToCheck).color !== color) {
-                leftTopPath.push(curPlaceToCheck);
-                break;
-            } else
-                break;
-        }
-        else
-            leftTopPath.push(curPlaceToCheck);
-    }
-
-    // Towards Left Bottom
-    for (let i = curPos.row+1, j = curPos.col-1; i < 9 && j > 0; i++, j--) {
-        let curPlaceToCheck = {row: i, col: j};
-
-        if(isPlaceBusy(curPlaceToCheck).busy) {
-            if(isPlaceBusy(curPlaceToCheck).color !== color) {
-                leftBottomPath.push(curPlaceToCheck);
-                break;
-            } else
-                break;
-        }
-        else
-            leftBottomPath.push(curPlaceToCheck);
-    }
-
-    // Towards Left Top
-    for (let i = curPos.row-1, j = curPos.col+1; i > 0 && j < 9; i--, j++) {
-        let curPlaceToCheck = {row: i, col: j};
-
-        if(isPlaceBusy(curPlaceToCheck).busy) {
-            if(isPlaceBusy(curPlaceToCheck).color !== color) {
-                rightTopPath.push(curPlaceToCheck);
-                break;
-            } else
-                break;
-        }
-        else
-            rightTopPath.push(curPlaceToCheck);
-    }
-
-    return {rightBottomPath, rightTopPath, leftBottomPath, leftTopPath};
-}
-
-function knight(curPos, color) {
-    let topLeft = [],
-        topRight = [],
-        rightTop = [],
-        rightBottom = [],
-        bottomRight = [],
-        bottomLeft = [],
-        leftBottom = [],
-        leftTop = [];
-
-    // TODO: Knight Overlap Checking for friendly or enemy pawns
-    let arr = [
-        {check: curPos.row-2 > 0 && curPos.col-1 > 0, actualPlace: {row: curPos.row-2, col: curPos.col-1}, color: color, arr: topLeft},
-        {check: curPos.row-2 > 0 && curPos.col+1 < 9, actualPlace: {row: curPos.row-2, col: curPos.col+1}, color: color, arr: topRight},
-        {check: curPos.row-1 > 0 && curPos.col+2 < 9, actualPlace: {row: curPos.row-1, col: curPos.col+2}, color: color, arr: rightTop},
-        {check: curPos.row+1 < 9 && curPos.col+2 < 9, actualPlace: {row: curPos.row+1, col: curPos.col+2}, color: color, arr: rightBottom},
-        {check: curPos.row+2 < 9 && curPos.col+1 < 9, actualPlace: {row: curPos.row+2, col: curPos.col+1}, color: color, arr: bottomRight},
-        {check: curPos.row+2 < 9 && curPos.col-1 > 0, actualPlace: {row: curPos.row+2, col: curPos.col-1}, color: color, arr: bottomLeft},
-        {check: curPos.row+1 < 9 && curPos.col-2 > 0, actualPlace: {row: curPos.row+1, col: curPos.col-2}, color: color, arr: leftBottom},
-        {check: curPos.row-1 > 0 && curPos.col-2 > 0, actualPlace: {row: curPos.row-1, col: curPos.col-2}, color: color, arr: leftTop}
-    ];
-    knightLooping(arr, knight);
-    return {topLeft, topRight, rightTop, rightBottom, bottomRight, bottomLeft, leftBottom, leftTop};
-}
-
-function knightLooping(arr) {
-    for(let i = 0; i < arr.length; i++) {
-        knightPush(arr[i]);
-    }
-}
 
 function knightPush(place) {
     if(place.check) {
         let curPlaceToCheck = place.actualPlace;
+        place.possiblePlace.push(curPlaceToCheck);
         if(isPlaceBusy(curPlaceToCheck).busy)
             isPlaceBusy(curPlaceToCheck).color !== place.color ? place.arr.push(curPlaceToCheck) : -1;
         else
             place.arr.push(curPlaceToCheck);
-    }
-}
-
-// TODO: Optimize this function to predict the pawn places
-
-function allowPosFn(pawnType, curPos, color) {
-    if(data.allowedMoves[pawnType].isCrossAllowed){
-        let positions = cross(curPos, color);
-        data.activePawn.allowPositions.push(Object.values(positions));
-        preparedUICross(positions);
-    }
-    if(data.allowedMoves[pawnType].isPlusAllowed){
-        let positions = plus(curPos, color);
-        data.activePawn.allowPositions.push(Object.values(positions));
-        preparedUIPlus(positions);
-    }
-    if(data.allowedMoves[pawnType].isKnight) {
-        let positions = knight(curPos, color);
-        data.activePawn.allowPositions.push(Object.values(positions));
-        preparedUIKnight(positions);
-    }
-    if(data.allowedMoves[pawnType].isOrdPawn) {
-        let positions = ordPawnMovement(curPos, color);
-        data.activePawn.allowPositions.push(Object.values(positions));
-        preparedOrdPawn(positions)
     }
 }
 
@@ -551,28 +990,44 @@ function updateMoves(type, no, color) {
     if(!data[`${color}Player`].overPawns[type][no]) {
         let curPos = data[`${color}Player`].pawnPlace[type][no];
         let positions = {};
+        data[`${color}Player`].predictedKingPlace[type][no] = [];
         data[`${color}Player`].predictedPlace[type][no] = [];
         if(typeAllowance(type).isCross){
             positions = cross(curPos, color);
-            data[`${color}Player`].predictedPlace[type][no].push(...Object.values(positions));
+            data[`${color}Player`].predictedPlace[type][no].push(...Object.values(positions[0]));
+            data[`${color}Player`].predictedKingPlace[type][no].push(...Object.values(positions[1]));
         }
         if(typeAllowance(type).isPlus){
             positions = plus(curPos, color);
-            data[`${color}Player`].predictedPlace[type][no].push(...Object.values(positions));
+            data[`${color}Player`].predictedPlace[type][no].push(...Object.values(positions[0]));
+            data[`${color}Player`].predictedKingPlace[type][no].push(...Object.values(positions[1]));
         }
         if(typeAllowance(type).isKnight) {
             positions = knight(curPos, color);
-            data[`${color}Player`].predictedPlace[type][no].push(...Object.values(positions));
+            data[`${color}Player`].predictedPlace[type][no].push(...Object.values(positions[0]));
+            data[`${color}Player`].predictedKingPlace[type][no].push(...Object.values(positions[0]));
         }
         if(typeAllowance(type).isOrdPawn) {
             positions = ordPawnMovement(curPos, color);
-            data[`${color}Player`].predictedPlace[type][no].push(...Object.values(positions));
+            data[`${color}Player`].predictedPlace[type][no].push(...Object.values(positions[0]));
+            data[`${color}Player`].predictedKingPlace[type][no].push(...Object.values(positions[1]));
+        }
+        if(typeAllowance(type).isKing) {
+            positions = king(curPos, color);
+            data[`${color}Player`].predictedPlace[type][no].push(...Object.values(positions[0]));
+            data[`${color}Player`].predictedKingPlace[type][no].push(...Object.values(positions[1]));
         }
     }
 }
 
 function typeAllowance(type) {
-    return {isCross: data.allowedMoves[type].isCrossAllowed, isPlus: data.allowedMoves[type].isPlusAllowed, isKnight: data.allowedMoves[type].isKnight, isOrdPawn: data.allowedMoves[type].isOrdPawn};
+    return {
+        isCross: data.allowedMoves[type].isCrossAllowed,
+        isPlus: data.allowedMoves[type].isPlusAllowed,
+        isKnight: data.allowedMoves[type].isKnight,
+        isOrdPawn: data.allowedMoves[type].isOrdPawn,
+        isKing: data.allowedMoves[type].isKing
+    };
 }
 
 function resetPredictedPlace(player) {
@@ -612,6 +1067,13 @@ function updateMovesHandler() {
 /*****************************************************************************************
  *                                 DISPLAY UI FUNCTIONS                                  *
  ****************************************************************************************/
+
+function preparedUIFromArray(posArr) {
+
+
+    pushToUI(posArr);
+}
+
 
 function preparedUICross(posArr) {
 
@@ -661,11 +1123,29 @@ function preparedUIKnight(posArr) {
     loopingFunctions(pushToUI, mulPlaces, true);
 }
 
+function preparedKing(posArr) {
+
+    let mulPlaces = [
+        posArr.topLeft,
+        posArr.top,
+        posArr.topRight,
+        posArr.right,
+        posArr.bottomRight,
+        posArr.bottom,
+        posArr.bottomLeft,
+        posArr.left,
+    ];
+
+    loopingFunctions(pushToUI, mulPlaces, true);
+}
+
 function pushToUI(places) {
     let c = 0;
     for (let i = 0; i <= places.length; i++) {
         pushToUITimer = setTimeout(function () {
-            addCumClass(places[i], 'cum');
+            if(places[i] !== null) {
+                addCumClass(places[i], 'cum');
+            }
         }, 50 * c);
         timerArray.push(pushToUITimer);
         c++;

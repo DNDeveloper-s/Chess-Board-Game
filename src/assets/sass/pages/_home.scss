@@ -17,7 +17,7 @@ $yellowTr: rgba(255, 255, 0, 0.53);
 
 $boxShadowOffset1: 12px;
 $boxShadowOffset2: -12px;
-$boxShadowColor: rgb(221, 127, 20);
+$boxShadowColor: #464afc;
 
 * {
   margin: 0;
@@ -27,7 +27,6 @@ $boxShadowColor: rgb(221, 127, 20);
   -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
-
 
 /* width */
 ::-webkit-scrollbar {
@@ -77,6 +76,7 @@ body {
 .pawn.none {
   opacity: 0;
 }
+
 .pawn.abs {
   pointer-events: none;
   z-index: 12;

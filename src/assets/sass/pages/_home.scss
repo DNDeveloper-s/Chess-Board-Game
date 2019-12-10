@@ -109,17 +109,28 @@ body {
 
 .cards__item {
   transition: .3s;
+  z-index: 1;
 }
 
 .cards__item.cum {
   position: relative;
-  z-index: 1;
+  z-index: 5;
   box-sizing: border-box;
   //background: radial-gradient(circle, rgba(252,222,70,1) 0%, rgba(251,63,63,1) 100%);
+  //background: url('../images/blueBg.jfif');
+  //background-size: 100% 100%;
   background: radial-gradient(circle, rgba(63,190,251,1) 0%, rgba(70,74,252,1) 100%);
+  //box-shadow: 0 5px 10px rgba(0,0,0,1);
   box-shadow: 0 1px 2px rgba(0,0,0,0.3);
-  //transition: 300ms;
+  transition: 100ms;
 
+}
+
+.cards__item.checkedKing {
+  background: url('../images/redPattern.jpg');
+  background-size: 100% 100%;
+  z-index: 4;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
 
 .box.thisOne {

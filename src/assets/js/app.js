@@ -67,6 +67,8 @@ let data = {
     white: function(a, b) {
         return {arithmeticOp: a+b, logicOp: a<=b}
     },
+    isKingChecked: {white: false, black: false},
+    kingCheckArr: {white: [], black: []},
     pathToKing: {white: [], black: []},
     curPawnPos: 7,
     validTarget: null,
@@ -103,7 +105,7 @@ pathKingArr();
  *                                    EVENT HANDLERS                                     *
  ****************************************************************************************/
 
-document.addEventListener('mouseup', function (e) {
+document.addEventListener('click', function (e) {
 
     // TODO: check and get the Target
     let target = checkAndGetTarget(e);
@@ -124,18 +126,24 @@ document.addEventListener('mouseup', function (e) {
         target.isTargetValid ? placePawnsOnTray(target) : -1;
         putAndPlacePawnInDOM(finalPathArr);
 
-        removeCumClass('cum');
+        removeCumClass('cum', true);
         updateMovesHandler();
+
+        isKingCheck();
+
+        kingCheckedArray(data.activePawn.color);
+        kingCheckedArray(opposeColor(data.activePawn.color));
+        addCheckedClass();
 
         possiblePlaceArr();
 
         pathKingArr();
 
     } else if(isItSameTarget(target)) {
-        removeCumClass('cum');
+        removeCumClass('cum', true);
         noActivePawn();
     } else {
-        removeCumClass('cum');
+        removeCumClass('cum', true);
         updateActivePawn(target);
 
         // TODO: perform operation on the Target
@@ -143,49 +151,88 @@ document.addEventListener('mouseup', function (e) {
             target.validTarget.parentElement.classList.add('thisOne');
         }
 
-        if(data.activePawn && !isTargetOnPathToKing(data.activePawn.pos, data.activePawn.color)) {
-            target.isTargetValid ? allowPosFn(target.targetType, target.pos, target.targetColor, target.num, false) : null;
+        if(data.isKingChecked[target.targetColor]) {
+            target.isTargetValid ? allowPosFn(target.targetType, target.pos, target.targetColor, target.num, false, true) : null;
+            console.log('Your king is in danger, Secure it');
         } else {
-            updatePathArrayToKing(target.pos, target.targetType, target.targetColor, target.num);
-            target.isTargetValid ? allowPosFn(target.targetType, target.pos, target.targetColor, target.num, true) : null;
-            // target.isTargetValid ? guardKingMoveFn(target.targetType, target.pos, target.targetColor) : null;
+            if(data.activePawn && !isTargetOnPathToKing(data.activePawn.pos, data.activePawn.color)) {
+                target.isTargetValid ? allowPosFn(target.targetType, target.pos, target.targetColor, target.num, false, false) : null;
+            } else {
+                updatePathArrayToKing(target.pos, target.targetType, target.targetColor, target.num);
+                target.isTargetValid ? allowPosFn(target.targetType, target.pos, target.targetColor, target.num, true, false) : null;
+                // target.isTargetValid ? guardKingMoveFn(target.targetType, target.pos, target.targetColor) : null;
+            }
         }
 
     }
 });
 
-function isTargetOnPathToKing(curPos, color) {
-    if(color !== null) {
-        for(let i = 0; i < data.pathToKing[color].length; i++) {
-            for(let j = 0; j < data.pathToKing[color][i].length; j++) {
-                if(curPos.row === data.pathToKing[color][i][j].row && curPos.col === data.pathToKing[color][i][j].col) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-
-function updatePathArrayToKing(curPos, pawnType, color, num) {
-    if(color !== null) {
-        data[`${color}Player`].pathKingArr[pawnType][num-1] = [];
-        let arr = data.pathToKing[color];
-        for(let i = 0; i < arr.length; i++) {
-            let arr1 = arr[i].slice(1, -1);
-            for(let j = 0; j < arr1.length; j++) {
-                if(curPos.row === arr1[j].row && curPos.col === arr1[j].col) {
-                    data[`${color}Player`].pathKingArr[pawnType][num-1].push(arr[i]);
-                    return;
-                }
-            }
-        }
-    }
-}
-
 /*****************************************************************************************
  *                                ACTUAL PAWN FUNCTIONS                                  *
  ****************************************************************************************/
+// Checked King
+
+function loopKingChecked(arr, color) {
+    for(let i = 0; i < arr.length; i++) {
+        for(let j = 0; j < arr[i].count; j++) {
+            loopThroughPredictedPlaces(arr[i].name, color, j);
+        }
+    }
+}
+
+function isKingCheck() {
+    let arr = [
+        {name: 'rook', count: 2},
+        {name: 'bishop', count: 2},
+        {name: 'knight', count: 2},
+        {name: 'queen', count: 1},
+        {name: 'king', count: 1},
+        {name: 'ordPawn', count: 8}
+    ];
+    data.kingCheckArr.white = [];
+    data.kingCheckArr.black = [];
+    loopKingChecked(arr, 'white');
+    loopKingChecked(arr, 'black');
+}
+
+function kingCheckedArray(color) {
+    let arr = data.kingCheckArr[color];
+    for(let i = 0; i < arr.length; i++) {
+        if(arr[i]) {
+            data.isKingChecked[color] = true;
+            return;
+        }
+    }
+    data.isKingChecked[color] = false;
+}
+
+function loopThroughPredictedPlaces(pawnType, color, num) {
+    let arr = data[`${color}Player`].predictedPlace[pawnType][num];
+    let kingPlace = data[`${opposeColor(color)}Player`].pawnPlace.king[0];
+    for(let i = 0; i < arr.length; i++) {
+        for(let j = 0; j < arr[i].length; j++) {
+            if(arr[i][j].row === kingPlace.row && arr[i][j].col === kingPlace.col) {
+                data.kingCheckArr[`${opposeColor(color)}`].push(true);
+                return;
+            }
+        }
+    }
+    data.kingCheckArr[`${opposeColor(color)}`].push(false);
+}
+
+function addCheckedClass() {
+    if(data.isKingChecked.white) {
+        let curPos = data.whitePlayer.pawnPlace.king[0];
+        addCumClass(curPos, 'checkedKing', false);
+    } else if(data.isKingChecked.black) {
+        let curPos = data.blackPlayer.pawnPlace.king[0];
+        addCumClass(curPos, 'checkedKing', false);
+    } else {
+        removeCumClass('checkedKing', false);
+    }
+}
+
+// Placing Pawn On Tray
 
 function placePawnsOnTray(pawn) {
     let pawnDOM = document.querySelector(`.cards__item[data-id="${rowColToString(pawn.pos)}"]`);
@@ -194,7 +241,8 @@ function placePawnsOnTray(pawn) {
     let pawnToMove = document.querySelector(`.pawn.${pawn.targetType}.${pawn.targetColor}.abs[data-color="${pawn.targetColor}"][data-no="${pawn.num}"]`);
     let trayPosEl = document.querySelector(`.checkBox.${pawn.targetColor}[data-check="${trayCount[`${pawn.targetColor}Player`]}"]`);
 
-    data[`${pawn.targetColor}Player`].pawnPlace[pawn.targetType][pawn.num-1] = -1;
+    data[`${pawn.targetColor}Player`].pawnPlace[pawn.targetType][pawn.num-1] = data[`${pawn.targetColor}Player`].allPossiblePlace[pawn.targetType][pawn.num-1] = data[`${pawn.targetColor}Player`].predictedKingPlace[pawn.targetType][pawn.num-1] = -1;
+    data[`${pawn.targetColor}Player`].pathKingArr[pawn.targetType][pawn.num-1] = -1;
     data[`${pawn.targetColor}Player`].predictedPlace[pawn.targetType][pawn.num-1] = -1;
     data[`${pawn.targetColor}Player`].overPawns[pawn.targetType][pawn.num-1] = true;
     // console.log(data[`${pawn.targetColor}Player`].pawnPlace[pawn.targetType][pawn.num-1]);
@@ -722,6 +770,35 @@ function possiblePlaceArr() {
     loopPossiblePlaces(arr, 'black');
 }
 
+function isTargetOnPathToKing(curPos, color) {
+    if(color !== null) {
+        for(let i = 0; i < data.pathToKing[color].length; i++) {
+            for(let j = 0; j < data.pathToKing[color][i].length; j++) {
+                if(curPos.row === data.pathToKing[color][i][j].row && curPos.col === data.pathToKing[color][i][j].col) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+function updatePathArrayToKing(curPos, pawnType, color, num) {
+    if(color !== null) {
+        data[`${color}Player`].pathKingArr[pawnType][num-1] = [];
+        let arr = data.pathToKing[color];
+        for(let i = 0; i < arr.length; i++) {
+            let arr1 = arr[i].slice(1, -1);
+            for(let j = 0; j < arr1.length; j++) {
+                if(curPos.row === arr1[j].row && curPos.col === arr1[j].col) {
+                    data[`${color}Player`].pathKingArr[pawnType][num-1].push(arr[i]);
+                    return;
+                }
+            }
+        }
+    }
+}
+
 function getThePathForGuardingKing(pawnType, curPos, color, num) {
     let place = data[`${color}Player`].allPossiblePlace[pawnType][num];
     let kingPlace = data[`${opposeColor(color)}Player`].pawnPlace.king[0];
@@ -783,18 +860,6 @@ function filterPathToKing(arr) {
     }
     return false;
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 function kingLooping(arr, color) {
     for(let i = 0; i < arr.length; i++) {
@@ -869,7 +934,7 @@ function mergePredictedPlaceHandler(color, type) {
     }
 }
 
-function allowPosFn(pawnType, curPos, color, num, isItGuarding) {
+function allowPosFn(pawnType, curPos, color, num, isItGuarding, isItChecked) {
     let commonObj = {
         isItGuarding: isItGuarding,
         pawnType: pawnType,
@@ -879,41 +944,85 @@ function allowPosFn(pawnType, curPos, color, num, isItGuarding) {
     };
     if(data.allowedMoves[pawnType].isCrossAllowed){
         let positions = cross(curPos, color);
-        positionGuardedPawnForAllowPosFn({
-            ...commonObj,
-            positions: positions,
-            fn: preparedUICross
-        });
+        if(!isItChecked) {
+            positionGuardedPawnForAllowPosFn({
+                ...commonObj,
+                positions: positions,
+                fn: preparedUICross
+            });
+        } else {
+            checkSavePathArray(positions, color)
+        }
     }
     if(data.allowedMoves[pawnType].isPlusAllowed){
         let positions = plus(curPos, color);
-        positionGuardedPawnForAllowPosFn({
-            ...commonObj,
-            positions: positions,
-            fn: preparedUIPlus
-        });
+        if(!isItChecked) {
+            positionGuardedPawnForAllowPosFn({
+                ...commonObj,
+                positions: positions,
+                fn: preparedUIPlus
+            });
+        } else {
+            checkSavePathArray(positions, color)
+        }
     }
     if(data.allowedMoves[pawnType].isKnight) {
         let positions = knight(curPos, color);
-        positionGuardedPawnForAllowPosFn({
-            ...commonObj,
-            positions: positions,
-            fn: preparedUIKnight
-        });
+        if(!isItChecked) {
+            positionGuardedPawnForAllowPosFn({
+                ...commonObj,
+                positions: positions,
+                fn: preparedUIKnight
+            });
+        } else {
+            checkSavePathArray(positions, color)
+        }
     }
     if(data.allowedMoves[pawnType].isOrdPawn) {
         let positions = ordPawnMovement(curPos, color);
-        positionGuardedPawnForAllowPosFn({
-            ...commonObj,
-            positions: positions,
-            fn: preparedOrdPawn
-        });
+        if(!isItChecked) {
+            positionGuardedPawnForAllowPosFn({
+                ...commonObj,
+                positions: positions,
+                fn: preparedOrdPawn
+            });
+        } else {
+            checkSavePathArray(positions, color)
+        }
     }
     if(data.allowedMoves[pawnType].isKing) {
         let positions = king(curPos, color);
         data.activePawn.allowPositions.push(Object.values(positions[0]));
         preparedKing(positions[0]);
     }
+}
+
+function checkSavePathArray(positions, color) {
+    let pos = [];
+    pos.push(...Object.values(positions[0]));
+    let desiredPos = [];
+    let posArr = [];
+    for(let i = 0; i < pos.length; i++) {
+        for(let j = 0; j < pos[i].length; j++) {
+            desiredPos.push(...checkIt(pos[i][j], color));
+        }
+    }
+    posArr.push(desiredPos);
+    data.activePawn.allowPositions.push(posArr);
+    preparedUIFromArray(desiredPos);
+}
+
+function checkIt(pos, color) {
+    let arr = data.pathToKing[color];
+    let desiredArr = [];
+    for(let i = 0; i < arr.length; i++) {
+        for(let j = 0; j < arr[i].length; j++) {
+            if(pos.row === arr[i][j].row && pos.col === arr[i][j].col) {
+                desiredArr.push(pos);
+            }
+        }
+    }
+    return desiredArr;
 }
 
 function positionGuardedPawnForAllowPosFn(obj) {
@@ -923,10 +1032,10 @@ function positionGuardedPawnForAllowPosFn(obj) {
         checkKingGuard.push(...Object.values(obj.positions[0]));
         let position = getKingGuardPositions(checkKingGuard, obj.pawnType, obj.curPos, obj.color, obj.num);
         pos.push(position);
+        console.log(pos);
         data.activePawn.allowPositions.push(pos);
         preparedUIFromArray(position);
     } else {
-        console.log(Object.values(obj.positions[0]));
         data.activePawn.allowPositions.push(Object.values(obj.positions[0]));
         obj.fn(obj.positions[0]);
     }
@@ -1062,18 +1171,13 @@ function updateMovesHandler() {
     loopUpdateMoves(arr, 'white');
 }
 
-
-
 /*****************************************************************************************
  *                                 DISPLAY UI FUNCTIONS                                  *
  ****************************************************************************************/
 
 function preparedUIFromArray(posArr) {
-
-
     pushToUI(posArr);
 }
-
 
 function preparedUICross(posArr) {
 
@@ -1144,15 +1248,13 @@ function pushToUI(places) {
     for (let i = 0; i <= places.length; i++) {
         pushToUITimer = setTimeout(function () {
             if(places[i] !== null) {
-                addCumClass(places[i], 'cum');
+                addCumClass(places[i], 'cum', true);
             }
         }, 50 * c);
         timerArray.push(pushToUITimer);
         c++;
     }
 }
-
-
 
 /*****************************************************************************************
  *                                   UTILITY FUNCTIONS                                   *
@@ -1238,7 +1340,6 @@ function getCoordinates(el) {
 }
 
 // Getting if place is free or not
-
 function isPlaceBusy(place) {
     let actualElementAtPlace = document.querySelector(`.cards__item[data-row="${place.row}"][data-col="${place.col}"]`),
         busy = false,
@@ -1253,7 +1354,6 @@ function isPlaceBusy(place) {
     }
     return {busy, color};
 }
-
 
 // Looping one Function multiple times with different parameters
 function loopingFunctions(fnName, arrParameter, isKnight) {
@@ -1272,25 +1372,29 @@ function loopingFunctions(fnName, arrParameter, isKnight) {
 }
 
 // Utilities to remove classes
-function addCumClass(place, className) {
+function addCumClass(place, className, isCumOver) {
     if(place !== undefined) {
         let el = document.querySelector(`.cards__item[data-row="${place.row}"][data-col="${place.col}"]`);
-        if(el.childNodes[el.childNodes.length-1].classList) {
-            if(el.childNodes[el.childNodes.length-1].classList.contains('pawn')) {
-                el.classList.add('cumOver');
-                return;
+        if(isCumOver) {
+            if(el.childNodes[el.childNodes.length-1].classList) {
+                if(el.childNodes[el.childNodes.length-1].classList.contains('pawn')) {
+                    el.classList.add('cumOver');
+                    return;
+                }
             }
         }
         el.classList.add(className);
     }
 }
 
-function removeCumClass(className) {
+function removeCumClass(className, cumOver) {
     removeArrayTimeout(timerArray);
     let el = document.querySelectorAll(`.cards__item`);
     el.forEach(cur => {
-        cur.classList.remove('cumOver');
-        cur.classList.remove('thisOne');
+        if(cumOver) {
+            cur.classList.remove('cumOver');
+            cur.classList.remove('thisOne');
+        }
         cur.classList.remove(className);
     })
 }

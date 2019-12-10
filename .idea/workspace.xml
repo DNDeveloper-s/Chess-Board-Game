@@ -2,8 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5930ffb3-bbb5-4d44-92e1-050ddd03ec6e" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/assets/images/Building Logics for separate pawns.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/assets/images/Capture.PNG" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/assets/images/Capture1.PNG" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/assets/images/chess3D.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/assets/images/chessPawns.jpg" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/assets/js/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/js/app.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/assets/sass/main.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/sass/main.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/assets/sass/main.css.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/sass/main.css.map" afterDir="false" />
@@ -85,7 +89,10 @@
       <workItem from="1575817328236" duration="8046000" />
       <workItem from="1575858342250" duration="1228000" />
       <workItem from="1575862861782" duration="6878000" />
-      <workItem from="1575892112252" duration="14107000" />
+      <workItem from="1575892112252" duration="16066000" />
+      <workItem from="1575911962960" duration="171000" />
+      <workItem from="1575951245939" duration="5326000" />
+      <workItem from="1575968263378" duration="4777000" />
     </task>
     <servers />
   </component>

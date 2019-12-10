@@ -140,14 +140,23 @@ body {
 
 .cards__item {
   transition: 0.3s;
+  z-index: 1;
 }
 
 .cards__item.cum {
   position: relative;
-  z-index: 1;
+  z-index: 5;
   box-sizing: border-box;
   background: radial-gradient(circle, #3fbefb 0%, #464afc 100%);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: 100ms;
+}
+
+.cards__item.checkedKing {
+  background: url("../images/redPattern.jpg");
+  background-size: 100% 100%;
+  z-index: 4;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 .box.thisOne {
@@ -462,14 +471,23 @@ body {
 
 .cards__item {
   transition: 0.3s;
+  z-index: 1;
 }
 
 .cards__item.cum {
   position: relative;
-  z-index: 1;
+  z-index: 5;
   box-sizing: border-box;
   background: radial-gradient(circle, #3fbefb 0%, #464afc 100%);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: 100ms;
+}
+
+.cards__item.checkedKing {
+  background: url("../images/redPattern.jpg");
+  background-size: 100% 100%;
+  z-index: 4;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 .box.thisOne {

@@ -9,3 +9,5 @@ other Pawn Moves:
 ordinary Pawn has two trajectory predictions 1 is for actual move and 2 is for actual check move.
 
 Let's loop from all pawn and if there moving
+
+Update predicted place on checked king or guarding pawn*

@@ -1,4 +1,8 @@
 let container = document.querySelector('.container');
+let cards__itemAll = document.querySelectorAll('.cards__item');
+cards__itemAll.forEach(cur => {
+    cur.removeChild(cur.childNodes[2]);
+});
 
 let pushToUITimer,
     timerArray = [],
@@ -54,6 +58,7 @@ class Player {
 }
 
 let data = {
+    isCheckMate: {color: null, status: false},
     activePawn: {
         allowPositions: [],
         color: null,
@@ -105,71 +110,136 @@ pathKingArr();
  *                                    EVENT HANDLERS                                     *
  ****************************************************************************************/
 
-document.addEventListener('click', function (e) {
+document.addEventListener('mouseup', function (e) {
 
     // TODO: check and get the Target
     let target = checkAndGetTarget(e);
 
-    if(isItCum(e)) {
-        let finalPathArr = loopForRowColString(pathArray(target));
+    if(!data.isCheckMate.status) {
+        if(isItCum(e)) {
+            let finalPathArr = loopForRowColString(pathArray(target));
 
-        movePawn({
-            sourcePos: rowColToString(data.activePawn.pos),
-            pawn: {
-                type: data.activePawn.type,
-                color: data.activePawn.color,
-                num: data.activePawn.num
-            },
-            jumpingLines: finalPathArr
-        });
+            movePawn({
+                sourcePos: rowColToString(data.activePawn.pos),
+                pawn: {
+                    type: data.activePawn.type,
+                    color: data.activePawn.color,
+                    num: data.activePawn.num
+                },
+                jumpingLines: finalPathArr
+            });
 
-        target.isTargetValid ? placePawnsOnTray(target) : -1;
-        putAndPlacePawnInDOM(finalPathArr);
+            target.isTargetValid ? placePawnsOnTray(target) : -1;
+            putAndPlacePawnInDOM(finalPathArr);
 
-        removeCumClass('cum', true);
-        updateMovesHandler();
+            removeCumClass('cum', true);
 
-        isKingCheck();
+            possiblePlaceArr();
 
-        kingCheckedArray(data.activePawn.color);
-        kingCheckedArray(opposeColor(data.activePawn.color));
-        addCheckedClass();
+            pathKingArr();
+            updateMovesHandler();
 
-        possiblePlaceArr();
+            isKingCheck();
 
-        pathKingArr();
+            kingCheckedArray(data.activePawn.color);
+            kingCheckedArray(opposeColor(data.activePawn.color));
+            addCheckedClass();
+            updateMovesHandler();
 
-    } else if(isItSameTarget(target)) {
-        removeCumClass('cum', true);
-        noActivePawn();
-    } else {
-        removeCumClass('cum', true);
-        updateActivePawn(target);
-
-        // TODO: perform operation on the Target
-        if(target.isTargetValid) {
-            target.validTarget.parentElement.classList.add('thisOne');
-        }
-
-        if(data.isKingChecked[target.targetColor]) {
-            target.isTargetValid ? allowPosFn(target.targetType, target.pos, target.targetColor, target.num, false, true) : null;
-            console.log('Your king is in danger, Secure it');
-        } else {
-            if(data.activePawn && !isTargetOnPathToKing(data.activePawn.pos, data.activePawn.color)) {
-                target.isTargetValid ? allowPosFn(target.targetType, target.pos, target.targetColor, target.num, false, false) : null;
-            } else {
-                updatePathArrayToKing(target.pos, target.targetType, target.targetColor, target.num);
-                target.isTargetValid ? allowPosFn(target.targetType, target.pos, target.targetColor, target.num, true, false) : null;
-                // target.isTargetValid ? guardKingMoveFn(target.targetType, target.pos, target.targetColor) : null;
+            if(data.isKingChecked[opposeColor(data.activePawn.color)]) {
+                data.isCheckMate.color = opposeColor(data.activePawn.color);
+                checkMateCondition();
             }
-        }
 
+            if(data.isCheckMate.status) {
+                updateUI(data.isCheckMate.color);
+            }
+
+        } else if(isItSameTarget(target)) {
+            removeCumClass('cum', true);
+            noActivePawn();
+        } else {
+            removeCumClass('cum', true);
+            updateActivePawn(target);
+
+            // TODO: perform operation on the Target
+            if(target.isTargetValid) {
+                target.validTarget.parentElement.classList.add('thisOne');
+            }
+
+            if(data.isKingChecked[target.targetColor]) {
+                target.isTargetValid ? allowPosFn(target.targetType, target.pos, target.targetColor, target.num, false, true) : null;
+            } else {
+                if(data.activePawn && !isTargetOnPathToKing(data.activePawn.pos, data.activePawn.color)) {
+                    target.isTargetValid ? allowPosFn(target.targetType, target.pos, target.targetColor, target.num, false, false) : null;
+                } else {
+                    updatePathArrayToKing(target.pos, target.targetType, target.targetColor, target.num);
+                    target.isTargetValid ? allowPosFn(target.targetType, target.pos, target.targetColor, target.num, true, false) : null;
+                    // target.isTargetValid ? guardKingMoveFn(target.targetType, target.pos, target.targetColor) : null;
+                }
+            }
+
+        }
     }
 });
+
+function updateUI(color) {
+    let winner = document.querySelector('.winner');
+    winner.style.display = 'block';
+    winner.childNodes[1].innerHTML = `${color.toLocaleUpperCase()} Color is the winner.`;
+}
+
 
 /*****************************************************************************************
  *                                ACTUAL PAWN FUNCTIONS                                  *
  ****************************************************************************************/
+
+// Check and Mate Functions
+
+function actualLoopCheckMate(arr) {
+    let playerColor = opposeColor(data.activePawn.color);
+    let arrReturned = [];
+    for(let i = 0; i < arr.length; i++) {
+        for(let j = 0; j < arr[i].count; j++) {
+            let arrPredictedPlace = data[`${playerColor}Player`].predictedPlace[arr[i].name][j];
+            arrReturned.push(isPredictedPlaceIsNullForAll(arrPredictedPlace));
+        }
+    }
+    isItNull(arrReturned);
+}
+
+function isItNull(arr) {
+    for(let i = 0; i < arr.length; i++) {
+        for(let j = 0; j < arr[i].length; j++) {
+            return true;
+        }
+    }
+    data.isCheckMate.status = true;
+    return false;
+}
+
+function isPredictedPlaceIsNullForAll(arr) {
+    let desiredArr = [];
+    for(let i = 0; i < arr.length; i++) {
+        for(let j = 0; j < arr[i].length; j++) {
+            desiredArr.push(arr[i][j]);
+        }
+    }
+    return desiredArr;
+}
+
+function checkMateCondition() {
+    let arr = [
+        {name: 'rook', count: 2},
+        {name: 'bishop', count: 2},
+        {name: 'knight', count: 2},
+        {name: 'queen', count: 1},
+        {name: 'king', count: 1},
+        {name: 'ordPawn', count: 8}
+    ];
+    actualLoopCheckMate(arr);
+}
+
 // Checked King
 
 function loopKingChecked(arr, color) {
@@ -1013,13 +1083,36 @@ function checkSavePathArray(positions, color) {
 }
 
 function checkIt(pos, color) {
-    let arr = data.pathToKing[color];
+    let checkArr = data.pathToKing[color];
+    let arr = filterPathToKingArray(checkArr);
     let desiredArr = [];
     for(let i = 0; i < arr.length; i++) {
         for(let j = 0; j < arr[i].length; j++) {
             if(pos.row === arr[i][j].row && pos.col === arr[i][j].col) {
                 desiredArr.push(pos);
             }
+        }
+    }
+    return desiredArr;
+}
+
+function filterPathToKingArray(arr) {
+    let desiredArr = [];
+    let count = 0;
+    for(let i = 0; i < arr.length; i++) {
+        count = 0;
+        let arr1 = arr[i].slice(1, -1);
+        for(let j = 0; j < arr1.length; j++) {
+            let place = document.querySelector(`.cards__item[data-row="${arr1[j].row}"][data-col="${arr1[j].col}"]`);
+            if(place.childNodes[place.childNodes.length-1].classList) {
+                if(place.childNodes[place.childNodes.length-1].classList.contains('pawn')) {
+                    count++;
+                }
+            }
+        }
+        if(count === 0) {
+            desiredArr.push(arr[i]);
+            return desiredArr;
         }
     }
     return desiredArr;
@@ -1032,7 +1125,6 @@ function positionGuardedPawnForAllowPosFn(obj) {
         checkKingGuard.push(...Object.values(obj.positions[0]));
         let position = getKingGuardPositions(checkKingGuard, obj.pawnType, obj.curPos, obj.color, obj.num);
         pos.push(position);
-        console.log(pos);
         data.activePawn.allowPositions.push(pos);
         preparedUIFromArray(position);
     } else {
@@ -1101,32 +1193,63 @@ function updateMoves(type, no, color) {
         let positions = {};
         data[`${color}Player`].predictedKingPlace[type][no] = [];
         data[`${color}Player`].predictedPlace[type][no] = [];
-        if(typeAllowance(type).isCross){
-            positions = cross(curPos, color);
+
+        function updatePredictedPlace() {
             data[`${color}Player`].predictedPlace[type][no].push(...Object.values(positions[0]));
             data[`${color}Player`].predictedKingPlace[type][no].push(...Object.values(positions[1]));
+        }
+
+        if(typeAllowance(type).isCross){
+            positions = cross(curPos, color);
+            if(!data.isKingChecked[color]) {
+                updatePredictedPlace();
+            } else {
+                checkSavedPathArrayForPredictedPlace(positions, color, type, no);
+            }
         }
         if(typeAllowance(type).isPlus){
             positions = plus(curPos, color);
-            data[`${color}Player`].predictedPlace[type][no].push(...Object.values(positions[0]));
-            data[`${color}Player`].predictedKingPlace[type][no].push(...Object.values(positions[1]));
+            if(!data.isKingChecked[color]) {
+                updatePredictedPlace()
+            } else {
+                checkSavedPathArrayForPredictedPlace(positions, color, type, no);
+            }
         }
         if(typeAllowance(type).isKnight) {
             positions = knight(curPos, color);
-            data[`${color}Player`].predictedPlace[type][no].push(...Object.values(positions[0]));
-            data[`${color}Player`].predictedKingPlace[type][no].push(...Object.values(positions[0]));
+            if(!data.isKingChecked[color]) {
+                data[`${color}Player`].predictedPlace[type][no].push(...Object.values(positions[0]));
+                data[`${color}Player`].predictedKingPlace[type][no].push(...Object.values(positions[0]));
+            } else {
+                checkSavedPathArrayForPredictedPlace(positions, color, type, no);
+            }
         }
         if(typeAllowance(type).isOrdPawn) {
             positions = ordPawnMovement(curPos, color);
-            data[`${color}Player`].predictedPlace[type][no].push(...Object.values(positions[0]));
-            data[`${color}Player`].predictedKingPlace[type][no].push(...Object.values(positions[1]));
+            if(!data.isKingChecked[color]) {
+                updatePredictedPlace()
+            } else {
+                checkSavedPathArrayForPredictedPlace(positions, color, type, no);
+            }
         }
         if(typeAllowance(type).isKing) {
             positions = king(curPos, color);
-            data[`${color}Player`].predictedPlace[type][no].push(...Object.values(positions[0]));
-            data[`${color}Player`].predictedKingPlace[type][no].push(...Object.values(positions[1]));
+            updatePredictedPlace();
         }
     }
+}
+
+function checkSavedPathArrayForPredictedPlace(positions, color, type, no) {
+    let pos = [];
+    pos.push(...Object.values(positions[0]));
+
+    let desiredPos = [];
+    for(let i = 0; i < pos.length; i++) {
+        for(let j = 0; j < pos[i].length; j++) {
+            desiredPos.push(checkIt(pos[i][j], color));
+        }
+    }
+    data[`${color}Player`].predictedPlace[type][no].push(...desiredPos);
 }
 
 function typeAllowance(type) {

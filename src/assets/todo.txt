@@ -1,0 +1,13 @@
+king Moves:
+	1. king will move on safe places, where no enemy pawn is predicting.
+
+other Pawn Moves: 
+	1. pawns can't be moved if their absence on the place is guarding the king.
+	2. In case of Check on King, Pawn can move the place so that king is being guarded. 
+
+
+ordinary Pawn has two trajectory predictions 1 is for actual move and 2 is for actual check move.
+
+Let's loop from all pawn and if there moving
+
+Update predicted place on checked king or guarding pawn*

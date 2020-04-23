@@ -1,0 +1,390 @@
+@import "../abstracts/mixins";
+
+// #41a2ff
+// #fe0000
+// #00ff01
+// #ffff00
+
+$blue: #41a2ff;
+$red: #fe0000;
+$green: #00ff01;
+$yellow: #ffff00;
+
+$blueTr: rgba(65, 162, 255, 0.51);
+$redTr: rgba(254, 0, 0, 0.59);
+$greenTr: rgba(0, 255, 1, 0.56);
+$yellowTr: rgba(255, 255, 0, 0.53);
+
+$boxShadowOffset1: 12px;
+$boxShadowOffset2: -12px;
+$boxShadowColor: #464afc;
+
+* {
+  margin: 0;
+  padding: 0;
+
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 100px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+body {
+  overflow-x: hidden;
+  font-family: 'sans-serif';
+  user-select: none;
+  background-image: url('../images/chess.jpg');
+}
+
+.container {
+  position: relative;
+  width: 100vh;
+  height: 100vh;
+  border: 4px solid #c29467;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0px 0px 30px black;
+  background: #f1f1f1;
+  z-index: 5;
+
+  @media (max-width: 500px) {
+    zoom: 0.4;
+    @include absCenter();
+  }
+}
+
+.pawn {
+  width: 95px;
+  height: 95px;
+  @media  (max-width: 500px) {
+    width: 55px;
+    height: 55px;
+  }
+}
+
+.row {
+  display: flex;
+}
+
+.pawn.none {
+  opacity: 0;
+}
+
+.pawn.abs {
+  pointer-events: none;
+  z-index: 12;
+}
+
+.box {
+  //position: relative;
+  width: calc(99.2vh / 8);
+  height: calc(99.2vh / 8);
+  box-sizing: border-box;
+  background: rgba(194, 176, 165, 0.73);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.bgBlack {
+  background: #c29467;
+}
+
+.pieces {
+  border: 1px solid red;
+  background: lightgrey;
+  width: 90px;
+  height: 90px;
+  @include flexCenter();
+  border-radius: 50%;
+}
+
+.cards__item {
+  transition: .3s;
+  z-index: 1;
+}
+
+.cards__item.cum {
+  position: relative;
+  z-index: 5;
+  box-sizing: border-box;
+  //background: radial-gradient(circle, rgba(252,222,70,1) 0%, rgba(251,63,63,1) 100%);
+  //background: url('../images/blueBg.jfif');
+  //background-size: 100% 100%;
+  background: radial-gradient(circle, rgba(63,190,251,1) 0%, rgba(70,74,252,1) 100%);
+  //box-shadow: 0 5px 10px rgba(0,0,0,1);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  transition: 100ms;
+
+}
+
+.cards__item.checkedKing {
+  background: url('../images/redPattern.jpg');
+  background-size: 100% 100%;
+  z-index: 4;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.box.thisOne {
+  position: relative;
+  //background: black;
+  //background: radial-gradient(circle, rgba(221,205,20,1) 0%, rgba(221,127,20,1) 100%);
+
+  &::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    //height: 100%;
+    height: 0;
+    overflow: hidden;
+    width: 2px;
+    background: $boxShadowColor;
+    box-shadow: $boxShadowOffset1 0 30px 12px $boxShadowColor;
+    animation: vertical .1s cubic-bezier(1,.17,.09,.92) forwards;
+    animation-delay: .3s;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 0;
+    //height: 100%;
+    width: 2px;
+    background: $boxShadowColor;
+    box-shadow: $boxShadowOffset2 0 30px 12px $boxShadowColor;
+    animation: vertical .1s cubic-bezier(1,.17,.09,.92) forwards;
+    animation-delay: 0.1s;
+  }
+
+  > .topLine {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    //width: 100%;
+    height: 2px;
+    background: $boxShadowColor;
+    box-shadow: 0 $boxShadowOffset1 30px 12px $boxShadowColor;
+    animation: horizontal .1s cubic-bezier(1,.17,.09,.92) forwards;
+    animation-delay: 0s;
+  }
+
+  > .bottomLine {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 0;
+    //width: 100%;
+    height: 2px;
+    background: $boxShadowColor;
+    box-shadow: 0 $boxShadowOffset2 30px 12px $boxShadowColor;
+    animation: horizontal .1s cubic-bezier(1,.17,.09,.92) forwards;
+    animation-delay: 0.2s;
+  }
+}
+
+.box.cumOwn {
+  z-index: 1;
+  box-sizing: border-box;
+  box-shadow: 0 0 40px #50bfe6 inset;
+  //border: 1px solid red;
+}
+
+.box.cumOver {
+  z-index: 1;
+  box-sizing: border-box;
+  box-shadow: 0 0 10px #ff5e4c;
+  //border: 1px solid red;
+  background: radial-gradient(circle, rgba(252,222,70,1) 0%, rgba(251,63,63,1) 100%);
+}
+
+
+img {
+  position: absolute;
+}
+
+.abs {
+  transition: 300ms;
+}
+
+.queenMove.abs {
+  position: absolute;
+  top: 733px;
+  left: 613px;
+  z-index: 11;
+}
+
+.kingMove.abs {
+  position: absolute;
+  //top: 492px;
+  //left: 614px;
+  z-index: 11;
+}
+
+.whitepawnMove-1.abs {
+  position: absolute;
+  top: 494px;
+  left: 374px;
+  z-index: 11;
+}
+
+.blackpawnMove-6.abs {
+  position: absolute;
+  top: 373px;
+  left: 254px;
+  z-index: 11;
+}
+
+.rookMove.abs {
+  position: absolute;
+  top: 17px;
+  left: 618px;
+  z-index: 11;
+}
+
+.knightMove.abs {
+  position: absolute;
+  top: 13px;
+  left: 373px;
+  z-index: 11;
+}
+
+.bishopMove.abs {
+  position: absolute;
+  top: 134px;
+  left: 493px;
+  z-index: 11;
+}
+
+.opNone {
+  opacity: 0;
+  z-index: 12;
+  width: 95px;
+  height: 95px;
+}
+
+.checked-black {
+  position: absolute;
+  top: 0;
+  right: calc(100% + 4px);
+  margin: 0;
+  width: 240px;
+  height: 100%;
+  box-sizing: content-box;
+  box-shadow: 0 0 20px black;
+  z-index: -1;
+  display: flex;
+  justify-content: flex-end;
+
+  @media (max-width: 500px) {
+    width: 148px;
+  }
+}
+.checked-black::before {
+  content: '';
+  position: absolute;
+  width: 240px;
+  height: 100%;
+  border: 4px solid lightgrey;
+  background: rgba(82, 82, 82, 0.19);
+  box-shadow: inset 0 0 2000px rgba(255, 255, 255, .5);
+  filter: blur(10px);
+  z-index: -1;
+
+  @media (max-width: 500px) {
+    width: 148px;
+  }
+}
+
+.checked-white {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 4px);
+  margin: 0;
+  width: 240px;
+  height: 100%;
+  box-sizing: content-box;
+  box-shadow: 0px 0px 20px black;
+  z-index: -1;
+  display: flex;
+
+  @media (max-width: 500px) {
+    width: 148px;
+  }
+}
+.checked-white::before {
+  content: '';
+  position: absolute;
+  width: 240px;
+  height: 100%;
+  border: 4px solid lightgrey;
+  background: rgba(82, 82, 82, 0.19);
+  box-shadow: inset 0 0 2000px rgba(255, 255, 255, .5);
+  filter: blur(10px);
+  z-index: -1;
+
+  @media (max-width: 500px) {
+    width: 148px;
+  }
+}
+
+
+.checkBox {
+  //border: 1px groove lightgrey;
+
+  width: 120px;
+  height: 120px;
+
+  @media (max-width: 500px) {
+    width: 46px;
+    height: 46px;
+    zoom: 1.58;
+  }
+
+  @include flexCenter();
+}
+
+.winner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.9);
+  z-index: 199999;
+  display: none;
+
+  > h2 {
+    color: #fff;
+    font-family: sans-serif;
+    font-size: 45px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    @include absCenter();
+  }
+}

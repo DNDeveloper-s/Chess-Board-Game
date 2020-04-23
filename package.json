@@ -1,0 +1,15 @@
+{
+  "homepage": "http://DNDeveloper-s.github.io/Chess-Board-Game",
+  "name": "Chess-Board-Game",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "live-server",
+    "scss": "node-sass --watch src/assets/sass/main.scss -o css",
+    "deploy": "gh-pages"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
